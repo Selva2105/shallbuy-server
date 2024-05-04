@@ -238,4 +238,35 @@ export class UserService {
 
     await this.userRepository.deactivateUser(userId);
   }
+
+  async updateUserById(
+    userId: string,
+    updates: any,
+    addresses: any[],
+  ): Promise<SafeUser> {
+    const restrictedFields = [
+      'email',
+      'profilePicture',
+      'password',
+      'role',
+      'backupCodes',
+      'emailVerificationToken',
+      'emailVerificationExpires',
+      'passwordResetToken',
+      'passwordResetExpires',
+    ];
+    const isRestrictedFieldUpdated = Object.keys(updates).some((field) =>
+      restrictedFields.includes(field),
+    );
+
+    if (isRestrictedFieldUpdated) {
+      throw new CustomError('Cannot update restricted fields', 400);
+    }
+
+    return this.userRepository.updateUserAndAddresses(
+      userId,
+      updates,
+      addresses,
+    );
+  }
 }

@@ -248,4 +248,54 @@ export class UserRepository {
       data: { isActive: false },
     });
   }
+
+  async updateUserAndAddresses(
+    userId: string,
+    updates: Prisma.UserUpdateInput,
+    addresses: Prisma.AddressCreateInput[] = [],
+  ): Promise<SafeUser> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...updates,
+        addresses: {
+          upsert: addresses.map((address) => ({
+            where: { id: address.id },
+            update: {
+              street: address.street,
+              landmark: address.landmark,
+              city: address.city,
+              state: address.state,
+              country: address.country,
+              pincode: address.pincode,
+              isPrimary: address.isPrimary,
+              district: address.district,
+            },
+            create: {
+              street: address.street,
+              landmark: address.landmark,
+              city: address.city,
+              state: address.state,
+              country: address.country,
+              pincode: address.pincode,
+              isPrimary: address.isPrimary,
+              district: address.district,
+            },
+          })),
+        },
+        auditLogs: {
+          push: {
+            action: 'Updation',
+            timestamp: new Date(),
+            details: 'User details updated successfully',
+          },
+        },
+      },
+      include: {
+        addresses: true,
+      },
+    });
+
+    return user;
+  }
 }

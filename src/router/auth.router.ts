@@ -57,6 +57,11 @@ router.patch(
   upload,
   userController.updateUserProfileById,
 );
+router.patch(
+  '/user/:id',
+  ProtectMiddleware.protect,
+  userController.updateUserById,
+);
 
 // DELETE Routes
 router.delete(

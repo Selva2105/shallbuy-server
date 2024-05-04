@@ -235,4 +235,26 @@ export class UserController {
         .json({ status: 'success', message: 'Logged out successfully' });
     },
   );
+
+  public updateUserById = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { id } = req.params;
+      const { addresses, ...rest } = req.body;
+
+      try {
+        const updatedUser = await this.userService.updateUserById(
+          id || '',
+          rest,
+          addresses,
+        );
+        res.status(200).json({
+          status: 'success',
+          message: 'User updated successfully',
+          user: updatedUser,
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
 }
