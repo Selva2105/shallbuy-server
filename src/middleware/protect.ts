@@ -42,22 +42,29 @@ export class ProtectMiddleware {
         .json({ message: 'Token revoked. Please log in again.' });
     }
 
-    const decodedToken = jwt.verify(
-      token,
-      process.env.SECRET_STR as string,
-    ) as { id: string };
+    try {
+      const decodedToken = jwt.verify(
+        token,
+        process.env.SECRET_STR as string,
+      ) as { id: string };
 
-    const user = await prisma.user.findUnique({
-      where: { id: decodedToken.id },
-    });
+      const user = await prisma.user.findUnique({
+        where: { id: decodedToken.id },
+      });
 
-    if (!user) {
-      return next(
-        new CustomError("The user with the given token doesn't exist", 401),
-      );
+      if (!user) {
+        return next(
+          new CustomError("The user with the given token doesn't exist", 401),
+        );
+      }
+
+      req.user = user;
+      return next();
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        return next(new CustomError('Token has expired', 401));
+      }
+      return next(new CustomError('Authentication failed', 401));
     }
-
-    req.user = user;
-    return next();
   }
 }

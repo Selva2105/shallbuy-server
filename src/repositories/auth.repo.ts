@@ -338,6 +338,13 @@ export class UserRepository {
     updates: Prisma.UserUpdateInput,
     addresses: Prisma.AddressCreateInput[] = [],
   ): Promise<SafeUser> {
+    // Check if user exists
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {

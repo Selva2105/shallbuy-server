@@ -21,7 +21,7 @@ export const prisma = new PrismaClient();
 
 dotenv.config();
 
-const app: Express = express();
+export const app: Express = express();
 const port = process.env.PORT || 3000;
 
 /**
