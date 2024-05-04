@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+jspm_packages
+
+# Serverless
+.serverless
+
+# Dynamodb
+.dynamodb
+
+# Webpack
+.webpack
+.esbuild
+
+# Output
+dist
+
+# Dotenv files
+.env*.local
+.env
+
+# Local folder
+local
+
+# testing
+coverage
+src/config/ikart-40b39-firebase-adminsdk-f25hh-fd951a91c0.json
+
+# Misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# Error logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*

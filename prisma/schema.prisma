@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String    @id @default(auto()) @map("_id") @db.ObjectId
+  username                 String    @unique
+  email                    String    @unique
+  password                 String
+  contactno                String
+  profilePicture           String?
+  dateOfBirth              DateTime?
+  role                     Role      @default(USER)
+  preferences              Json
+  isActive                 Boolean   @default(true)
+  isEmailVerified          Boolean   @default(false)
+  twoFactorEnabled         Boolean   @default(false)
+  twoFactorSecret          String?
+  backupCodes              Json[]
+  emailVerificationToken   String?   @unique
+  emailVerificationExpires DateTime?
+  passwordResetToken       String?   
+  passwordResetExpires     DateTime?
+  auditLogs                Json[]
+  addresses                Address[]
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model Address {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  street    String
+  landmark  String?
+  city      String
+  state     String
+  country   String
+  pincode   String
+  isPrimary Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String
+  district  String?
+}
+
+model RevokedToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  expiresAt DateTime
+}
+
+enum Role {
+  USER
+  ADMIN
+  DEV
+  SELLER
+  TESTER
+}
