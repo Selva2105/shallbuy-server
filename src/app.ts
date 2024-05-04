@@ -10,20 +10,23 @@ import CustomError from './utils/customError';
 
 export const prisma = new PrismaClient();
 
-prisma.$use(async (params, next) => {
-  if (params.model === 'User') {
-    if (params.action === 'findMany' || params.action === 'findUnique') {
-      params.args.include = { ...params.args.include, addresses: true };
-    }
-  }
-  return next(params);
-});
+// prisma.$use(async (params, next) => {
+//   if (params.model === 'User') {
+//     if (params.action === 'findMany' || params.action === 'findUnique') {
+//       params.args.include = { ...params.args.include, addresses: true };
+//     }
+//   }
+//   return next(params);
+// });
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
+/**
+ * Main function to configure and start the Express server.
+ */
 async function main() {
   app.use(express.json());
 

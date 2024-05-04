@@ -5,6 +5,10 @@ import type { UserService } from '@/services/auth.services';
 import asyncHandler from '@/utils/asyncErrorHandler';
 import CustomError from '@/utils/customError';
 
+/**
+ * UserController class handles all HTTP requests related to user operations.
+ * It provides methods for user registration, login, profile management, and more.
+ */
 export class UserController {
   private userService: UserService;
 
@@ -12,6 +16,12 @@ export class UserController {
     this.userService = userService;
   }
 
+  /**
+   * Registers a new user with the provided user data.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public register = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const user = await this.userService.registerUser(req.body);
@@ -29,6 +39,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Authenticates a user with provided email and password.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public login = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { email, password } = req.body;
@@ -47,6 +63,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Verifies a user's email using a token.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public verifyEmail = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { emailVerificationToken } = req.params;
@@ -67,6 +89,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Retrieves all registered users.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public getAllUsers = asyncHandler(
     async (
       _req: Request,
@@ -83,6 +111,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Retrieves a single user by their ID.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public getUserById = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const user = await this.userService.getUserById(req.params.id || '');
@@ -100,6 +134,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Deletes a user by their ID.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public deleteUserById = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const user = await this.userService.getUserById(req.params.id || '');
@@ -118,6 +158,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Changes the password for a user identified by ID.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public changePassword = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { id } = req.params;
@@ -149,6 +195,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Updates user settings related to two-factor authentication.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public updateUserSettings = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { id } = req.params;
@@ -171,6 +223,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Uploads a profile picture for a user.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public uploadProfile = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { id } = req.params;
@@ -178,23 +236,30 @@ export class UserController {
         next(new CustomError('No file uploaded', 400));
         return;
       }
-      const profileUrl = await this.userService.uploadUserProfile(
-        id || '',
-        req.file,
-      );
-
-      if (!profileUrl) {
-        next(new CustomError('Profile upload failed', 400));
+      try {
+        await this.userService.updateUserProfile(id || '', req.file);
+        const updatedUser = await this.userService.getUserById(id || '');
+        if (!updatedUser) {
+          next(new CustomError('User not found', 404));
+          return;
+        }
+        res.status(200).json({
+          status: 'success',
+          message: 'User profile updated successfully',
+          profileUrl: updatedUser.profilePicture,
+        });
+      } catch (error) {
+        next(error);
       }
-
-      res.status(200).json({
-        success: true,
-        message: 'Profile picture uploaded successfully',
-        profileUrl,
-      });
     },
   );
 
+  /**
+   * Updates the profile picture of a user by their ID.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public updateUserProfileById = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { id } = req.params;
@@ -220,6 +285,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Logs out a user by revoking their authentication token.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public logout = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const authHeader = req.headers.authorization;
@@ -236,6 +307,12 @@ export class UserController {
     },
   );
 
+  /**
+   * Updates a user's profile information by their ID.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
   public updateUserById = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       const { id } = req.params;

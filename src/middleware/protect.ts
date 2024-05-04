@@ -5,7 +5,21 @@ import { prisma } from '../app';
 import type { Request as CustomRequest } from '../types/express';
 import CustomError from '../utils/customError';
 
+/**
+ * ProtectMiddleware class provides methods to secure routes by verifying user tokens.
+ * It ensures that the user is authenticated and the token is not revoked.
+ */
 export class ProtectMiddleware {
+  /**
+   * Middleware to protect routes and ensure the user is authenticated.
+   * It checks for the token in the authorization header, verifies it, checks if it's revoked,
+   * and ensures the user exists in the database.
+   *
+   * @param req - The request object.
+   * @param res - The response object.
+   * @param next - The next middleware function in the stack.
+   * @throws {CustomError} If the user is not logged in, token is revoked, or user does not exist.
+   */
   static async protect(req: CustomRequest, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
     let token;

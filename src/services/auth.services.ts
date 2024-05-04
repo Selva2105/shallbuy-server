@@ -20,7 +20,10 @@ import emailTemplate from '@/view/email-template';
 initializeApp(firebaseConfig);
 
 const storage = getStorage();
-
+/**
+ * UserService class provides methods to manage user operations such as registration,
+ * login, email verification, user profile management, and more.
+ */
 export class UserService {
   private userRepository: UserRepository;
 
@@ -28,6 +31,12 @@ export class UserService {
 
   private tokenService: TokenService;
 
+  /**
+   * Constructs a new instance of UserService.
+   * @param userRepository - Repository for user data interaction.
+   * @param mailer - Mailer service for sending emails.
+   * @param tokenService - Service for token generation and validation.
+   */
   constructor(
     userRepository: UserRepository,
     mailer: Mailer,
@@ -38,6 +47,11 @@ export class UserService {
     this.tokenService = tokenService;
   }
 
+  /**
+   * Registers a new user with the provided user data and sends a verification email.
+   * @param userData - The data of the user to register.
+   * @returns The registered user with token or null if registration fails.
+   */
   async registerUser(
     userData: Prisma.UserCreateInput & {
       addresses?: Prisma.AddressCreateInput[];
@@ -47,7 +61,6 @@ export class UserService {
     if (user) {
       const token = this.tokenService.signToken(user.id);
 
-      // Prepare the email content
       const mailOptions = {
         from: process.env.ADMIN_MAILID || 'default-email@example.com',
         to: user.email,
@@ -59,7 +72,6 @@ export class UserService {
       };
       await this.mailer.sendMail(mailOptions);
 
-      // Ensure addresses are included in the response
       const userWithAddresses = await this.userRepository.findUserWithAddresses(
         user.id,
       );
@@ -68,13 +80,18 @@ export class UserService {
     return null;
   }
 
+  /**
+   * Authenticates a user with provided email and password.
+   * @param email - User's email.
+   * @param password - User's password.
+   * @returns Authenticated user with token or null if authentication fails.
+   */
   async loginUser(email: string, password: string) {
     const user = await this.userRepository.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
       const token = this.tokenService.signToken(user.id);
       user.isActive = true;
       await this.userRepository.updateUserActivity(user.id, true);
-      // Ensure addresses are included in the response
       const userWithAddresses = await this.userRepository.findUserWithAddresses(
         user.id,
       );
@@ -83,6 +100,11 @@ export class UserService {
     return null;
   }
 
+  /**
+   * Verifies a user's email using a token.
+   * @param token - Token for email verification.
+   * @returns The verified user or null if verification fails.
+   */
   public async verifyUserEmail(token: string): Promise<User | null> {
     const user = await this.userRepository.findByEmailVerificationToken(token);
 
@@ -110,18 +132,38 @@ export class UserService {
     return user;
   }
 
+  /**
+   * Retrieves all users.
+   * @returns Array of users.
+   */
   public async getAllUsers(): Promise<SafeUser[]> {
     return this.userRepository.findAllUsers();
   }
 
+  /**
+   * Retrieves a user by their ID.
+   * @param userId - The ID of the user to retrieve.
+   * @returns The user if found, otherwise null.
+   */
   async getUserById(userId: string): Promise<SafeUser | null> {
     return this.userRepository.findUserWithAddresses(userId);
   }
 
+  /**
+   * Deletes a user by their ID.
+   * @param userId - The ID of the user to delete.
+   */
   async deleteUserById(userId: string): Promise<void> {
     return this.userRepository.deleteUserById(userId);
   }
 
+  /**
+   * Changes the password of a user.
+   * @param userId - The ID of the user.
+   * @param currentPassword - Current password of the user.
+   * @param newPassword - New password to set.
+   * @returns True if the password was successfully changed.
+   */
   async changeUserPassword(
     userId: string,
     currentPassword: string,
@@ -141,6 +183,12 @@ export class UserService {
     return this.userRepository.updatePassword(userId, newPassword);
   }
 
+  /**
+   * Updates user settings related to two-factor authentication.
+   * @param userId - The ID of the user.
+   * @param twoFactorEnabled - Boolean indicating if two-factor should be enabled.
+   * @returns The updated user or null if update fails.
+   */
   async updateUserSettings(
     userId: string,
     twoFactorEnabled: boolean,
@@ -156,6 +204,12 @@ export class UserService {
     return this.userRepository.findUserWithAddresses(userId);
   }
 
+  /**
+   * Updates user settings related to two-factor authentication.
+   * @param userId - The ID of the user.
+   * @param twoFactorEnabled - Boolean indicating if two-factor should be enabled.
+   * @returns The updated user or null if update fails.
+   */
   async uploadUserProfile(
     userId: string,
     file: Express.Multer.File,
@@ -187,6 +241,12 @@ export class UserService {
     return profileUrl;
   }
 
+  /**
+   * Uploads and updates the profile picture of a user.
+   * @param userId - The ID of the user.
+   * @param file - File data of the new profile picture.
+   * @returns URL of the uploaded profile picture or null if upload fails.
+   */
   async updateUserProfile(
     userId: string,
     file: Express.Multer.File,
@@ -217,6 +277,10 @@ export class UserService {
     });
   }
 
+  /**
+   * Logs out a user by revoking their authentication token.
+   * @param token - The token to revoke.
+   */
   async logoutUser(token: string): Promise<void> {
     const decodedToken = jwt.verify(
       token,
@@ -239,6 +303,13 @@ export class UserService {
     await this.userRepository.deactivateUser(userId);
   }
 
+  /**
+   * Updates user information and addresses.
+   * @param userId - The ID of the user to update.
+   * @param updates - Object containing fields to update.
+   * @param addresses - Array of addresses to update.
+   * @returns The updated user or null if update fails.
+   */
   async updateUserById(
     userId: string,
     updates: any,
