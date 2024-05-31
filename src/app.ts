@@ -34,6 +34,10 @@ async function main() {
     morgan(':method :url :status :res[content-length] - :response-time ms'),
   );
 
+  app.get('/', (_req, res) => {
+    res.send('Welcome to the root of the server!');
+  });
+
   app.use('/api/v1/auth', authRouter);
 
   // 404 route - Handles requests to undefined routes
