@@ -24,7 +24,6 @@ local
 
 # testing
 coverage
-src/config/ikart-40b39-firebase-adminsdk-f25hh-fd951a91c0.json
 
 # Misc
 .DS_Store
