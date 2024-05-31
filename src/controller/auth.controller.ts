@@ -23,11 +23,13 @@ export class UserController {
    * @param next - The next middleware function in the stack.
    */
   public register = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
       const user = await this.userService.registerUser(req.body);
       if (!user) {
-        const error = new CustomError('User creation failed', 400);
-        next(error);
+        res.status(401).json({
+          status: 'fail',
+          message: 'Invalid email or password',
+        });
       } else {
         res.status(201).json({
           status: 'success',
