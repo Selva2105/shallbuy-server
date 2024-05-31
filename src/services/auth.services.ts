@@ -1,5 +1,6 @@
 import type { Prisma, User } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
 import { initializeApp } from 'firebase/app';
 import {
   getDownloadURL,
@@ -9,13 +10,25 @@ import {
 } from 'firebase/storage';
 import jwt from 'jsonwebtoken';
 
-import { firebaseConfig } from '@/config/firebaseConfig';
 import type { SafeUser, UserRepository } from '@/repositories/auth.repo';
 import CustomError from '@/utils/customError';
 import DateTimeUtils from '@/utils/dateUtils';
 import type Mailer from '@/utils/mailer';
 import type TokenService from '@/utils/SignToken';
 import emailTemplate from '@/view/email-template';
+
+dotenv.config();
+
+export const firebaseConfig = {
+  apiKey: process.env.FB_APIKEY,
+  authDomain: process.env.FB_AUTHDOMAIN,
+  projectId: process.env.FB_PROJECTID,
+  databaseURL: process.env.FB_DBURL,
+  storageBucket: process.env.FB_STORAGEBUCKET,
+  messagingSenderId: process.env.FB_MESSAGINGSENDERID,
+  appId: process.env.FB_APPID,
+  measurementId: process.env.FB_MEASUREMENTID,
+};
 
 initializeApp(firebaseConfig);
 
