@@ -1,7 +1,7 @@
 {
-  "name": "serverless-boilerplate-express-typescript",
+  "name": "shallbuy-server",
   "version": "1.2.1",
-  "description": "Serverless framework ExpressJS TypeScript",
+  "description": "Shallbuy ExpressJS TypeScript",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/app.js",
