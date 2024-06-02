@@ -2,56 +2,54 @@ const result = () => {
   return `
   <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Success Page | shallbuy</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        #gif-container {
-            margin-top: 20px;
-        }
-
-        a {
-            color: #007BFF;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .link {
-            line-height: 1rem;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activation Success</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .container {
+        background-color: #ffffff;
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    h1 {
+        color: #7C3AED;
+    }
+    p {
+        color: #333;
+        margin: 20px 0;
+    }
+    .button {
+        background-color: #7C3AED;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+</style>
 </head>
-
-<body class="container">
-    <h2>Hey chief, welcome to shallbuy</h2>
-
-    <div id="gif-container">
-        <img src="https://firebasestorage.googleapis.com/v0/b/ikart-40b39.appspot.com/o/images%2Fstatic-images%2FSuccessful.gif?alt=media&token=7bd48d05-6f6f-478f-9100-28905a81ca7d" alt="Animated Gif" width="300">
-    </div>
-
-    <p>Verified sucessfully <a class="clickLink" href="https://ecom-web-rho.vercel.app/login"
-            target="_blank">Click to signin</a></p>
+<body>
+<div class="container">
+    <h1>Activation Successful!</h1>
+    <p>Your account has been successfully activated. You can now enjoy all the features of our service.</p>
+    <a href="https://ecom-web-rho.vercel.app/login" class="button"">Go to Dashboard</a>
+</div>
 </body>
-
 </html>`;
 };
 
