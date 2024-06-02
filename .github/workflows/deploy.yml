@@ -1,18 +1,31 @@
-name: Continious Deployment
+name: Continuous Deployment
 
 on:
   push:
     branches: [main]
-
 
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
 
-    steps: 
-      - name: Deploy to production
-        uses: johnbeynon/render-deploy-action@v0.0.8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          service-id: ${{ secrets.SERVICE_ID }} # Can be found as part of the Deploy Hook
-          api-key: ${{ secrets.RENDER_API_KEY }} # Create your API key in Render Dashboard > Account Settings
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to Render
+        env:
+          SERVICE_ID: ${{ secrets.SERVICE_ID }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.SERVICE_ID }}/deploys" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Content-Type: application/json"
