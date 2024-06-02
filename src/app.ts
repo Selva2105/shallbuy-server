@@ -35,7 +35,7 @@ async function main() {
   );
 
   app.get('/', (_req, res) => {
-    res.send('Welcome to the root of the server!');
+    res.send('Server is Healthy⚡️!');
   });
 
   app.use('/api/v1/auth', authRouter);
