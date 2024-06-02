@@ -70,7 +70,14 @@ export class UserService {
       addresses?: Prisma.AddressCreateInput[];
     },
   ) {
+    // Check if user already exists
+    const existingUser = await this.userRepository.findByEmail(userData.email);
+    if (existingUser) {
+      throw new CustomError('User already exists with this email', 409);
+    }
+
     const user = await this.userRepository.findOrCreate(userData);
+
     if (user) {
       const token = this.tokenService.signToken(user.id);
 

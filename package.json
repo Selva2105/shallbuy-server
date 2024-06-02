@@ -6,14 +6,15 @@
     "build": "npx tsc",
     "start": "node -r tsconfig-paths/register dist/app.js",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/app.ts",
-    "db:push": "prisma db push",
     "lint": "eslint .",
     "format": "eslint --fix . && prettier '**/*.{json,yaml}' --write --ignore-path .gitignore",
     "check-types": "tsc --noEmit --pretty",
     "commit": "cz",
     "prepare": "husky install",
     "postinstall": "prisma generate",
-    "test": "jest"
+    "test": "jest",
+    "db:push": "prisma db push",
+    "db:generate": "npx prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.13.0",
