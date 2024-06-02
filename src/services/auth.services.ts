@@ -79,7 +79,7 @@ export class UserService {
         to: user.email,
         subject: 'Welcome to Sky kart! Verify your email',
         html: emailTemplate(
-          `https://ecom-server-beta.vercel.app/api/v1/auth/verifyEmail/${user.emailVerificationToken}`,
+          `https://shallbuy-server.onrender.com/api/v1/auth/verifyEmail/${user.emailVerificationToken}`,
           user.username,
         ),
       };

@@ -92,7 +92,7 @@ const emailTemplate = (url: string, name: string) => {
     <body>
         <div class="container poppins-regular">
             <div class="img-container">
-                <img src="https://ecom-server-beta.vercel.app/images/logo.png" alt="Company Logo" class="logo-img">
+                <img src="https://firebasestorage.googleapis.com/v0/b/ikart-40b39.appspot.com/o/images%2Fstatic-images%2Flogo.png?alt=media&token=b532a225-c164-4f91-be65-871e9297af7d" alt="Company Logo" class="logo-img">
             </div>
             <p class="poppins-medium">Hi ${name} our beloved Chief,</p>
             <p>Welcome to Shallbuy, your one-stop destination for all your shopping needs! We are thrilled to have you on board and look forward to providing you with an exceptional online shopping experience.</p>
