@@ -28,12 +28,13 @@ model User {
   backupCodes              Json[]
   emailVerificationToken   String?   @unique
   emailVerificationExpires DateTime?
-  passwordResetToken       String?   
+  passwordResetToken       String?
   passwordResetExpires     DateTime?
   auditLogs                Json[]
   addresses                Address[]
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
+  Product                  Product[]
 }
 
 model Address {
@@ -56,10 +57,70 @@ model RevokedToken {
   expiresAt DateTime
 }
 
+model Product {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String
+  price         Int
+  sku           Int
+  image         Json?
+  tags          String?
+  totalRating   Int?
+  quantity      Int
+  subCategoryId String
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  sellerId      String
+  seller        User        @relation(fields: [sellerId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime?   @updatedAt
+}
+
+model Category {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          CategoryType
+  subCategories SubCategory[]
+}
+
+model SubCategory {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id])
+  products   Product[]
+}
+
 enum Role {
   USER
   ADMIN
   DEV
   SELLER
   TESTER
+}
+
+enum CategoryType {
+  ELECTRONICS
+  FASHION
+  HOME_APPLIANCES
+  BOOKS
+  TOYS
+  GROCERIES
+  BEAUTY
+  SPORTS
+  AUTOMOTIVE
+  FURNITURE
+  JEWELRY
+  MUSIC
+  OFFICE_SUPPLIES
+  PET_SUPPLIES
+  GARDEN
+  HEALTH
+  BABY
+  VIDEO_GAMES
+  MOVIES
+  SOFTWARE
+  ART
+  CRAFTS
+  INDUSTRIAL
+  OUTDOORS
+  TRAVEL
 }
