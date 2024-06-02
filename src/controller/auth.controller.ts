@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
-import path from 'path';
 
 import type { UserService } from '@/services/auth.services';
 import asyncHandler from '@/utils/asyncErrorHandler';
 import CustomError from '@/utils/customError';
+import result from '@/view/email-result';
 
 /**
  * UserController class handles all HTTP requests related to user operations.
@@ -86,7 +86,7 @@ export class UserController {
         return next(error);
       }
 
-      res.sendFile(path.join(__dirname, '../view/email-result.html'));
+      res.send(result());
       return undefined;
     },
   );

@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+const result = () => {
+  return `
+  <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -50,4 +52,7 @@
             target="_blank">Click to signin</a></p>
 </body>
 
-</html>
+</html>`;
+};
+
+export default result;
