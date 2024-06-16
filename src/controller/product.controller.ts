@@ -40,4 +40,17 @@ export class ProductController {
       return res.status(201).json(product);
     },
   );
+
+  public getAllProducts = asyncErrorHandler(
+    async (req: Request, res: Response): Promise<void> => {
+      const filters = req.query;
+      const products = await this.productService.getAllProducts(filters);
+      res.json({
+        status: 'success',
+        message: 'Products fetched successfully',
+        length: products.length,
+        data: products,
+      });
+    },
+  );
 }

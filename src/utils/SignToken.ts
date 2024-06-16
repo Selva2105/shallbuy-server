@@ -6,11 +6,8 @@ import jwt from 'jsonwebtoken';
 class TokenService {
   private secretKey: string;
 
-  private expiresIn: string;
-
   constructor() {
     this.secretKey = process.env.SECRET_STR!;
-    this.expiresIn = process.env.LOGIN_EXPIRES!;
   }
 
   /**
@@ -20,9 +17,7 @@ class TokenService {
    * @returns Generated JWT token.
    */
   public signToken(id: string): string {
-    const token = jwt.sign({ id }, this.secretKey, {
-      expiresIn: this.expiresIn,
-    });
+    const token = jwt.sign({ id }, this.secretKey);
 
     return token;
   }

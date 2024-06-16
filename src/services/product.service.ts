@@ -19,6 +19,10 @@ export class ProductService {
     this.userRepository = userRepository;
   }
 
+  public getAllProducts = async (filters: any): Promise<any> => {
+    return this.productRepository.getAllProducts(filters);
+  };
+
   public createProduct = async (
     productData: any,
     file: Express.Multer.File,
