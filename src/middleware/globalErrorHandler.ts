@@ -66,8 +66,8 @@ const duplicateKeyErrorHandler = (err: any): CustomError => {
  * @returns {CustomError} - CustomError object with a specific error message.
  */
 const validationErrorHandler = (err: any): CustomError => {
-  const errors = Object.values(err.errors).map((val: any) => ({
-    message: val.message,
+  const errors = Object.values(err.error).map((val: any) => ({
+    message: val.msg,
     value: val.value,
   }));
   const errorMessages = errors
@@ -105,7 +105,8 @@ const globalErrorHandler = (
     if (error.code === 11000) error = duplicateKeyErrorHandler(error);
 
     // If it's a validation error, handle it here
-    if (error.name === 'ValidationError') error = validationErrorHandler(error);
+    if (error.message === 'Validation failed')
+      error = validationErrorHandler(error);
 
     productionError(res, error);
   }

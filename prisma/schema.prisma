@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Updated Prisma schema for a full e-commerce website including models for Product, Cart, and Order.
+// Added relations between User, Cart, Order, and Product.
 
 generator client {
   provider        = "prisma-client-js"
@@ -32,9 +32,11 @@ model User {
   passwordResetExpires     DateTime?
   auditLogs                Json[]
   addresses                Address[]
+  carts                    Cart[]
+  orders                   Order[]
+  productsSold Product[] @relation("UserProducts")
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
-  Product                  Product[]
 }
 
 model Address {
@@ -51,42 +53,82 @@ model Address {
   district  String?
 }
 
+model Review {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  star        Int      @default(0)
+  picture     String?
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  price       Float
+  category    CategoryType
+  quantity    Int
+  images      String
+  reviews     Review[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sellerId    String
+  seller      User         @relation(name: "UserProducts", fields: [sellerId], references: [id])
+  inCarts     CartProduct[]
+  inOrders    OrderProduct[]
+}
+
+model CartProduct {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  cartId    String
+  productId String
+  cart      Cart   @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model OrderProduct {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Cart {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  user      User          @relation(fields: [userId], references: [id])
+  userId    String
+  products  CartProduct[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Order {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  user      User          @relation(fields: [userId], references: [id])
+  userId    String
+  products  OrderProduct[]
+  total     Float
+  status    OrderStatus
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
 model RevokedToken {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   token     String   @unique
   expiresAt DateTime
 }
 
-model Product {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  description   String
-  price         Int
-  sku           Int
-  image         Json?
-  tags          String?
-  totalRating   Int?
-  quantity      Int
-  subCategoryId String
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-  sellerId      String
-  seller        User        @relation(fields: [sellerId], references: [id])
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime?   @updatedAt
-}
-
-model Category {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  name          CategoryType
-  subCategories SubCategory[]
-}
-
-model SubCategory {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  categoryId String
-  category   Category  @relation(fields: [categoryId], references: [id])
-  products   Product[]
+enum OrderStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
 
 enum Role {

@@ -106,6 +106,30 @@ export class UserRepository {
   }
 
   /**
+   * Finds a user by their id.
+   * @param id - The id to search for.
+   * @returns A promise that resolves to the user object or null.
+   */
+  async findUserByIdAndRole(
+    userId: string,
+    roles: Role[],
+  ): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+    if (user && roles.includes(user.role)) {
+      return this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+    }
+    return null;
+  }
+
+  /**
    * Updates the activity status of a user.
    * @param id - The user's ID.
    * @param isActive - The new activity status.
