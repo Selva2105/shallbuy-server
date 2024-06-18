@@ -53,4 +53,42 @@ export class ProductController {
       });
     },
   );
+
+  public getProductById = asyncErrorHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const productId = req.params.id;
+      const product = await this.productService.getProductById(productId || '');
+      if (!product) {
+        const error = new CustomError('Product not found', 404);
+        next(error);
+      }
+      res.json({
+        status: 'success',
+        message: 'Product fetched successfully',
+        data: product,
+      });
+    },
+  );
+
+  public updateProduct = asyncErrorHandler(
+    async (
+      req: Request,
+      res: Response,
+      _next: NextFunction,
+    ): Promise<Response | void> => {
+      const productId = req.params.id;
+      const productData = req.body;
+      const { file } = req;
+      const updatedProduct = await this.productService.updateProduct(
+        productId || '',
+        productData,
+        file,
+      );
+      res.status(200).json({
+        status: 'success',
+        message: 'Product updated successfully',
+        data: updatedProduct,
+      });
+    },
+  );
 }

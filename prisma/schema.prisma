@@ -3,7 +3,6 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["mongodb"]
 }
 
 datasource db {
@@ -34,7 +33,7 @@ model User {
   addresses                Address[]
   carts                    Cart[]
   orders                   Order[]
-  productsSold Product[] @relation("UserProducts")
+  productsSold Product[]  @relation("UserProducts")
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 }
@@ -66,20 +65,22 @@ model Review {
 }
 
 model Product {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String
-  price       Float
-  category    CategoryType
-  quantity    Int
-  images      String
-  reviews     Review[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  sellerId    String
-  seller      User         @relation(name: "UserProducts", fields: [sellerId], references: [id])
-  inCarts     CartProduct[]
-  inOrders    OrderProduct[]
+  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String
+  description           String
+  price                 Float
+  discountPercentage    Float             @default(0)
+  discountedPrice       Float             @default(0)
+  category              CategoryType
+  quantity              Int
+  images                String
+  reviews               Review[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  sellerId              String
+  seller                User              @relation(name: "UserProducts", fields: [sellerId], references: [id])
+  inCarts               CartProduct[]
+  inOrders              OrderProduct[]
 }
 
 model CartProduct {

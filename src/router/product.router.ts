@@ -41,6 +41,7 @@ const productController = new ProductController(
 
 // {{URL}}/api/v1/products?name=Ultra HD 4K TV&category=ELECTRONICS&quantity=50&priceGreaterThan=4999&sortBy=price&sortOrder=desc&sortBy=name&sortOrder=asc
 router.get('/', productController.getAllProducts);
+router.get('/:id', productController.getProductById);
 
 router.post(
   '/create',
@@ -56,6 +57,13 @@ router.post(
   },
   ProtectMiddleware.protect,
   productController.createProduct,
+);
+
+router.patch(
+  '/update/:id',
+  ProtectMiddleware.protect,
+  upload.single('file'),
+  productController.updateProduct,
 );
 
 export default router;

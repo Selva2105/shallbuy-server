@@ -1,12 +1,15 @@
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient, Product } from '@prisma/client';
 import type { FirebaseApp } from 'firebase/app';
 import type { FirebaseStorage } from 'firebase/storage';
 import {
+  deleteObject,
   getDownloadURL,
   getStorage,
   ref,
   uploadBytesResumable,
 } from 'firebase/storage';
+
+import DateTimeUtils from '@/utils/dateUtils';
 
 export class ProductRepository {
   private prisma: PrismaClient;
@@ -68,6 +71,12 @@ export class ProductRepository {
     });
   };
 
+  public findUnique = async (
+    options: Prisma.ProductFindUniqueArgs,
+  ): Promise<Product | null> => {
+    return this.prisma.product.findUnique(options);
+  };
+
   async uploadProductPicture(
     file: Express.Multer.File,
     dateTime: string,
@@ -89,13 +98,62 @@ export class ProductRepository {
     productData: any,
     productPicture: string,
   ): Promise<any> => {
+    const discountPercentage = parseFloat(productData.discountPercentage);
+    const discountedPrice =
+      productData.price - (productData.price * discountPercentage) / 100;
     return this.prisma.product.create({
       data: {
         ...productData,
         price: parseFloat(productData.price),
         quantity: parseInt(productData.quantity, 10),
         images: productPicture,
+        discountedPrice,
       },
     });
   };
+
+  public updateProduct = async (
+    productId: string,
+    productData: any,
+    file?: Express.Multer.File,
+  ): Promise<Product> => {
+    const existingProduct = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { images: true },
+    });
+
+    let newProfileUrl;
+    if (file) {
+      // Delete the existing product picture only if a new file is provided
+      if (existingProduct && existingProduct.images) {
+        await this.deleteProductPicture(existingProduct.images);
+      }
+      const dateTime = DateTimeUtils.giveCurrentDateTime();
+      newProfileUrl = await this.uploadProductPicture(file, dateTime);
+    }
+
+    // Ensure discountPercentage is a float
+    const discountPercentage = parseFloat(productData.discountPercentage);
+    const discountedPrice =
+      productData.price - (productData.price * discountPercentage) / 100;
+
+    const updateData = {
+      ...productData,
+      price: parseFloat(productData.price),
+      quantity: parseInt(productData.quantity, 10),
+      discountPercentage, // Now correctly formatted as a float
+      discountedPrice,
+      ...(newProfileUrl && { images: newProfileUrl }),
+    };
+
+    return this.prisma.product.update({
+      where: { id: productId },
+      data: updateData,
+    });
+  };
+
+  async deleteProductPicture(filePath: string): Promise<void> {
+    const fileRef = ref(this.firebaseStorage, filePath);
+    await deleteObject(fileRef);
+  }
 }
