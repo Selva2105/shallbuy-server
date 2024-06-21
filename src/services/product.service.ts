@@ -26,6 +26,14 @@ export class ProductService {
   public async getProductById(productId: string): Promise<Product | null> {
     return this.productRepository.findUnique({
       where: { id: productId },
+      include: {
+        _count: {
+          select: {
+            variants: true,
+          },
+        },
+        variants: true,
+      },
     });
   }
 
@@ -45,6 +53,7 @@ export class ProductService {
       file,
       dateTime,
     );
+
     return this.productRepository.createProduct(productData, newProfileUrl);
   };
 

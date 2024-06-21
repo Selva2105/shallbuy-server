@@ -1,4 +1,9 @@
-import type { Prisma, PrismaClient, Product } from '@prisma/client';
+import type {
+  Prisma,
+  PrismaClient,
+  Product,
+  ProductVariant,
+} from '@prisma/client';
 import type { FirebaseApp } from 'firebase/app';
 import type { FirebaseStorage } from 'firebase/storage';
 import {
@@ -23,25 +28,20 @@ export class ProductRepository {
 
   public getAllProducts = async (filters: any): Promise<any> => {
     const {
-      priceGreaterThan,
-      priceLessThan,
       category,
       name,
       sortBy,
-      sortOrder = 'asc', // Default sort order
-      page = 1, // Default page
-      pageSize = 10, // Default page size
+      sortOrder = 'asc',
+      page = 1,
+      pageSize = 10,
+      priceMin,
+      priceMax,
+      discountMin,
+      discountMax,
+      sellerId,
     } = filters;
 
     const query: any = {};
-
-    // Price filtering
-    if (priceGreaterThan) {
-      query.price = { ...query.price, gt: parseFloat(priceGreaterThan) };
-    }
-    if (priceLessThan) {
-      query.price = { ...query.price, lt: parseFloat(priceLessThan) };
-    }
 
     // Category filtering
     if (category) {
@@ -51,6 +51,27 @@ export class ProductRepository {
     // Name filtering
     if (name) {
       query.name = { contains: name, mode: 'insensitive' };
+    }
+
+    // Price range filtering
+    if (priceMin !== undefined && priceMax !== undefined) {
+      query.price = {
+        gte: parseFloat(priceMin),
+        lte: parseFloat(priceMax),
+      };
+    }
+
+    // Discount range filtering
+    if (discountMin !== undefined && discountMax !== undefined) {
+      query.discountPercentage = {
+        gte: parseFloat(discountMin),
+        lte: parseFloat(discountMax),
+      };
+    }
+
+    // Seller filtering
+    if (sellerId) {
+      query.sellerId = sellerId;
     }
 
     // Sorting
@@ -68,6 +89,14 @@ export class ProductRepository {
       orderBy,
       skip,
       take,
+      include: {
+        variants: true,
+        _count: {
+          select: {
+            variants: true,
+          },
+        },
+      },
     });
   };
 
@@ -98,18 +127,43 @@ export class ProductRepository {
     productData: any,
     productPicture: string,
   ): Promise<any> => {
+    // Ensure main product fields are correctly typed
+    const price = parseFloat(productData.price);
     const discountPercentage = parseFloat(productData.discountPercentage);
-    const discountedPrice =
-      productData.price - (productData.price * discountPercentage) / 100;
-    return this.prisma.product.create({
+    const discountedPrice = price - (price * discountPercentage) / 100;
+    const quantity = parseInt(productData.quantity, 10);
+
+    // Map over variants to ensure their fields are also correctly typed
+    const typedVariants = productData.variants.map(
+      (variant: ProductVariant) => ({
+        type: variant.type,
+        price: parseFloat(variant.price.toString()),
+        discountPercentage: parseFloat(variant.discountPercentage.toString()),
+        discountedPrice:
+          parseFloat(variant.price.toString()) -
+          (parseFloat(variant.price.toString()) *
+            parseFloat(variant.discountPercentage.toString())) /
+            100,
+      }),
+    );
+
+    const product = await this.prisma.product.create({
       data: {
         ...productData,
-        price: parseFloat(productData.price),
-        quantity: parseInt(productData.quantity, 10),
-        images: productPicture,
+        price,
+        discountPercentage,
         discountedPrice,
+        images: productPicture,
+        quantity,
+        variants: {
+          create: typedVariants,
+        },
+      },
+      include: {
+        variants: true,
       },
     });
+    return product;
   };
 
   public updateProduct = async (
@@ -119,7 +173,9 @@ export class ProductRepository {
   ): Promise<Product> => {
     const existingProduct = await this.prisma.product.findUnique({
       where: { id: productId },
-      select: { images: true },
+      include: {
+        variants: true,
+      },
     });
 
     let newProfileUrl;
@@ -146,9 +202,31 @@ export class ProductRepository {
       ...(newProfileUrl && { images: newProfileUrl }),
     };
 
+    // Update variants only if they are provided
+    if (productData.variants && productData.variants.length > 0) {
+      updateData.variants = {
+        updateMany: productData.variants.map((variant: any) => ({
+          where: { id: variant.id, productId },
+          data: {
+            type: variant.type,
+            price: parseFloat(variant.price),
+            discountPercentage: parseFloat(variant.discountPercentage),
+            discountedPrice:
+              parseFloat(variant.price) -
+              (parseFloat(variant.price) *
+                parseFloat(variant.discountPercentage)) /
+                100,
+          },
+        })),
+      };
+    }
+
     return this.prisma.product.update({
       where: { id: productId },
       data: updateData,
+      include: {
+        variants: true, // Include variants in the response
+      },
     });
   };
 
