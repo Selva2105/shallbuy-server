@@ -7,6 +7,7 @@ import morgan from 'morgan';
 
 import globalErrorHandler from './middleware/globalErrorHandler';
 import authRouter from './router/auth.router';
+import CommentRouter from './router/comment.router';
 import productRouter from './router/product.router';
 import CustomError from './utils/customError';
 
@@ -31,6 +32,7 @@ const port = process.env.PORT || 3000;
  */
 async function main() {
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
   app.use(cors());
 
   app.use(
@@ -43,7 +45,7 @@ async function main() {
 
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/products', productRouter);
-
+  app.use('/api/v1/comments', CommentRouter);
   // 404 route - Handles requests to undefined routes
   app.all('*', (req: Request, _res: Response, next: NextFunction) => {
     const err = new CustomError(
