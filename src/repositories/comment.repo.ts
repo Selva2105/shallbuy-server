@@ -26,6 +26,12 @@ export class CommentRepository {
     });
   }
 
+  async findCommentById(commentId: string): Promise<Comment | null> {
+    return this.prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+  }
+
   async updateComment(
     id: string,
     CommentData: Prisma.CommentUpdateInput,
