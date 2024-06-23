@@ -33,7 +33,7 @@ model User {
   addresses                Address[]
   carts                    Cart[]
   orders                   Order[]
-  productsSold Product[]  @relation("UserProducts")
+  productsSold             Product[] @relation("UserProducts")
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 }
@@ -50,18 +50,22 @@ model Address {
   user      User    @relation(fields: [userId], references: [id])
   userId    String
   district  String?
+
+  @@index([userId])
 }
 
-model Review {
+model Comment {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
-  star        Int      @default(0)
+  star        Float    @default(0)
   picture     String?
   product     Product  @relation(fields: [productId], references: [id])
   productId   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([productId])
 }
 
 model Product {
@@ -74,7 +78,7 @@ model Product {
   category              CategoryType
   quantity              Int
   images                String
-  reviews               Review[]
+  comments              Comment[]
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   sellerId              String
@@ -82,24 +86,32 @@ model Product {
   inCarts               CartProduct[]
   inOrders              OrderProduct[]
   variants              ProductVariant[]
+
+  @@index([sellerId])
+  @@index([category])
 }
 
 model ProductVariant {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  type        String
-  price       Float
-  discountPercentage   Float                @default(0)
-  discountedPrice      Float                @default(0)
-  productId   String   @db.ObjectId
-  product     Product  @relation(fields: [productId], references: [id])
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  type                String
+  price               Float
+  discountPercentage  Float   @default(0)
+  discountedPrice     Float   @default(0)
+  productId           String  @db.ObjectId
+  product             Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
 }
 
 model CartProduct {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   cartId    String
   productId String
-  cart      Cart   @relation(fields: [cartId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([cartId])
+  @@index([productId])
 }
 
 model OrderProduct {
@@ -108,6 +120,9 @@ model OrderProduct {
   order     Order    @relation(fields: [orderId], references: [id])
   productId String
   product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Cart {
@@ -115,8 +130,10 @@ model Cart {
   user      User          @relation(fields: [userId], references: [id])
   userId    String
   products  CartProduct[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId])
 }
 
 model Order {
@@ -126,8 +143,11 @@ model Order {
   products  OrderProduct[]
   total     Float
   status    OrderStatus
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model RevokedToken {
