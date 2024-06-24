@@ -156,6 +156,18 @@ model RevokedToken {
   expiresAt DateTime
 }
 
+model ContactForm {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email,name])
+}
+
 enum OrderStatus {
   PENDING
   SHIPPED
