@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
 const contactFormRepo = new ContactFormRepository(prisma);
 const contactService = new ContactFormService(contactFormRepo);
 const contactFormController = new ContactFormController(contactService);
-const restrictMiddleware = new RestrictMiddleware('admin', 'editor', 'viewer');
+const restrictMiddleware = new RestrictMiddleware(Role.ADMIN);
 
 router.post(
   '/',

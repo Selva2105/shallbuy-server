@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import dotenv from 'dotenv';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
@@ -9,6 +9,7 @@ import multer from 'multer';
 
 import { ProductController } from '@/controller/product.controller';
 import { ProtectMiddleware } from '@/middleware/protect';
+import RestrictMiddleware from '@/middleware/restrict';
 import { UserRepository } from '@/repositories/auth.repo';
 import CustomError from '@/utils/customError';
 import { createProductValidator } from '@/validators/product.validators';
@@ -38,6 +39,11 @@ const productController = new ProductController(
   firebaseApp,
   userRepository,
 );
+const restrictMiddleware = new RestrictMiddleware(
+  Role.ADMIN,
+  Role.SELLER,
+  Role.TESTER,
+);
 
 // {{URL}}/api/v1/products?name=Ultra HD 4K TV&category=ELECTRONICS&quantity=50&priceGreaterThan=4999&sortBy=price&sortOrder=desc&sortBy=name&sortOrder=asc
 router.get('/', productController.getAllProducts);
@@ -56,12 +62,14 @@ router.post(
     return next();
   },
   ProtectMiddleware.protect,
+  restrictMiddleware.restrict,
   productController.createProduct,
 );
 
 router.patch(
   '/update/:id',
   ProtectMiddleware.protect,
+  restrictMiddleware.restrict,
   upload.single('file'),
   productController.updateProduct,
 );
