@@ -7,6 +7,7 @@ import morgan from 'morgan';
 
 import globalErrorHandler from './middleware/globalErrorHandler';
 import authRouter from './router/auth.router';
+import careersRouter from './router/careers.router';
 import CommentRouter from './router/comment.router';
 import contactRouter from './router/contact.router';
 import productRouter from './router/product.router';
@@ -48,6 +49,7 @@ async function main() {
   app.use('/api/v1/products', productRouter);
   app.use('/api/v1/comments', CommentRouter);
   app.use('/api/v1/contact', contactRouter);
+  app.use('/api/v1/careers', careersRouter);
   // 404 route - Handles requests to undefined routes
   app.all('*', (req: Request, _res: Response, next: NextFunction) => {
     const err = new CustomError(
