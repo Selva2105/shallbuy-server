@@ -75,4 +75,14 @@ export class ProductService {
 
     return this.productRepository.updateProduct(productId, productData, file);
   };
+
+  public deleteProduct = async (productId: string): Promise<void> => {
+    const product = await this.productRepository.findUnique({
+      where: { id: productId },
+    });
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    await this.productRepository.deleteProduct(productId);
+  };
 }

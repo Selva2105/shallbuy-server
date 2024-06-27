@@ -1,5 +1,4 @@
 import { PrismaClient, Role } from '@prisma/client';
-import dotenv from 'dotenv';
 import type { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import { validationResult } from 'express-validator';
@@ -7,6 +6,7 @@ import type { FirebaseApp } from 'firebase/app';
 import { initializeApp } from 'firebase/app';
 import multer from 'multer';
 
+import { firebaseConfig } from '@/config/firebaseConfig';
 import { ProductController } from '@/controller/product.controller';
 import { ProtectMiddleware } from '@/middleware/protect';
 import RestrictMiddleware from '@/middleware/restrict';
@@ -17,19 +17,6 @@ import { createProductValidator } from '@/validators/product.validators';
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-
-dotenv.config();
-
-export const firebaseConfig = {
-  apiKey: process.env.FB_APIKEY,
-  authDomain: process.env.FB_AUTHDOMAIN,
-  projectId: process.env.FB_PROJECTID,
-  databaseURL: process.env.FB_DBURL,
-  storageBucket: process.env.FB_STORAGEBUCKET,
-  messagingSenderId: process.env.FB_MESSAGINGSENDERID,
-  appId: process.env.FB_APPID,
-  measurementId: process.env.FB_MEASUREMENTID,
-};
 
 const prisma = new PrismaClient();
 const firebaseApp: FirebaseApp = initializeApp(firebaseConfig);
@@ -72,6 +59,13 @@ router.patch(
   restrictMiddleware.restrict,
   upload.single('file'),
   productController.updateProduct,
+);
+
+router.delete(
+  '/delete/:id',
+  ProtectMiddleware.protect,
+  restrictMiddleware.restrict,
+  productController.deleteProduct,
 );
 
 export default router;

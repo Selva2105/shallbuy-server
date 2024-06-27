@@ -178,14 +178,18 @@ export class ProductRepository {
       },
     });
 
-    let newProfileUrl;
+    if (!existingProduct) {
+      throw new Error(`Product with ID ${productId} not found`);
+    }
+
+    let newProductUrl;
     if (file) {
       // Delete the existing product picture only if a new file is provided
       if (existingProduct && existingProduct.images) {
         await this.deleteProductPicture(existingProduct.images);
       }
       const dateTime = DateTimeUtils.giveCurrentDateTime();
-      newProfileUrl = await this.uploadProductPicture(file, dateTime);
+      newProductUrl = await this.uploadProductPicture(file, dateTime);
     }
 
     // Ensure discountPercentage is a float
@@ -199,7 +203,7 @@ export class ProductRepository {
       quantity: parseInt(productData.quantity, 10),
       discountPercentage, // Now correctly formatted as a float
       discountedPrice,
-      ...(newProfileUrl && { images: newProfileUrl }),
+      ...(newProductUrl && { images: newProductUrl }),
     };
 
     // Update variants only if they are provided
@@ -234,4 +238,19 @@ export class ProductRepository {
     const fileRef = ref(this.firebaseStorage, filePath);
     await deleteObject(fileRef);
   }
+
+  public deleteProduct = async (productId: string): Promise<void> => {
+    await this.prisma.productVariant.deleteMany({
+      where: { productId },
+    });
+    await this.prisma.product.delete({
+      where: { id: productId },
+    });
+  };
+
+  public deleteProductVariant = async (variantId: string): Promise<void> => {
+    await this.prisma.productVariant.delete({
+      where: { id: variantId },
+    });
+  };
 }

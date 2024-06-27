@@ -91,4 +91,15 @@ export class ProductController {
       });
     },
   );
+
+  public deleteProduct = asyncErrorHandler(
+    async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+      const productId = req.params.id;
+      await this.productService.deleteProduct(productId || '');
+      res.status(204).json({
+        status: 'success',
+        message: 'Product deleted successfully',
+      });
+    },
+  );
 }

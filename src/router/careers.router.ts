@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import dotenv from 'dotenv';
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
 import { validationResult } from 'express-validator';
 import type { FirebaseApp } from 'firebase/app';
 import { initializeApp } from 'firebase/app';
 
+import { firebaseConfig } from '@/config/firebaseConfig';
 import { CareersController } from '@/controller/careers.controller';
 import { ProtectMiddleware } from '@/middleware/protect';
 import RestrictMiddleware from '@/middleware/restrict';
@@ -14,19 +14,6 @@ import { JobRepository } from '@/repositories/careers.repo';
 import { JobService } from '@/services/careers.service';
 import CustomError from '@/utils/customError';
 import careersValidator from '@/validators/careers.validators';
-
-dotenv.config();
-
-export const firebaseConfig = {
-  apiKey: process.env.FB_APIKEY,
-  authDomain: process.env.FB_AUTHDOMAIN,
-  projectId: process.env.FB_PROJECTID,
-  databaseURL: process.env.FB_DBURL,
-  storageBucket: process.env.FB_STORAGEBUCKET,
-  messagingSenderId: process.env.FB_MESSAGINGSENDERID,
-  appId: process.env.FB_APPID,
-  measurementId: process.env.FB_MEASUREMENTID,
-};
 
 const router = Router();
 const prisma = new PrismaClient();

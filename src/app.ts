@@ -6,6 +6,7 @@ import express from 'express';
 import morgan from 'morgan';
 
 import globalErrorHandler from './middleware/globalErrorHandler';
+import applicationsRouter from './router/application.router';
 import authRouter from './router/auth.router';
 import careersRouter from './router/careers.router';
 import CommentRouter from './router/comment.router';
@@ -13,18 +14,9 @@ import contactRouter from './router/contact.router';
 import productRouter from './router/product.router';
 import CustomError from './utils/customError';
 
-export const prisma = new PrismaClient();
-
-// prisma.$use(async (params, next) => {
-//   if (params.model === 'User') {
-//     if (params.action === 'findMany' || params.action === 'findUnique') {
-//       params.args.include = { ...params.args.include, addresses: true };
-//     }
-//   }
-//   return next(params);
-// });
-
 dotenv.config();
+
+export const prisma = new PrismaClient();
 
 export const app: Express = express();
 const port = process.env.PORT || 3000;
@@ -50,6 +42,7 @@ async function main() {
   app.use('/api/v1/comments', CommentRouter);
   app.use('/api/v1/contact', contactRouter);
   app.use('/api/v1/careers', careersRouter);
+  app.use('/api/v1/applications', applicationsRouter);
   // 404 route - Handles requests to undefined routes
   app.all('*', (req: Request, _res: Response, next: NextFunction) => {
     const err = new CustomError(
