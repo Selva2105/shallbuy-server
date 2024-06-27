@@ -49,7 +49,7 @@ model Address {
   pincode   String
   isPrimary Boolean @default(false)
   user      User    @relation(fields: [userId], references: [id])
-  userId    String
+  userId    String  @db.ObjectId
   district  String?
 
   @@index([userId])
@@ -62,7 +62,7 @@ model Comment {
   star        Float    @default(0)
   picture     String?
   product     Product  @relation(fields: [productId], references: [id])
-  productId   String
+  productId   String   @db.ObjectId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -82,7 +82,7 @@ model Product {
   comments           Comment[]
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
-  sellerId           String
+  sellerId           String           @db.ObjectId
   seller             User             @relation(name: "UserProducts", fields: [sellerId], references: [id])
   inCarts            CartProduct[]
   inOrders           OrderProduct[]
@@ -106,8 +106,8 @@ model ProductVariant {
 
 model CartProduct {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  cartId    String
-  productId String
+  cartId    String  @db.ObjectId
+  productId String  @db.ObjectId
   cart      Cart    @relation(fields: [cartId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
 
@@ -117,9 +117,9 @@ model CartProduct {
 
 model OrderProduct {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String
+  orderId   String  @db.ObjectId
   order     Order   @relation(fields: [orderId], references: [id])
-  productId String
+  productId String  @db.ObjectId
   product   Product @relation(fields: [productId], references: [id])
 
   @@index([orderId])
@@ -129,7 +129,7 @@ model OrderProduct {
 model Cart {
   id        String        @id @default(auto()) @map("_id") @db.ObjectId
   user      User          @relation(fields: [userId], references: [id])
-  userId    String
+  userId    String        @db.ObjectId
   products  CartProduct[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
@@ -140,7 +140,7 @@ model Cart {
 model Order {
   id        String         @id @default(auto()) @map("_id") @db.ObjectId
   user      User           @relation(fields: [userId], references: [id])
-  userId    String
+  userId    String         @db.ObjectId
   products  OrderProduct[]
   total     Float
   status    OrderStatus
@@ -170,7 +170,7 @@ model ContactForm {
 }
 
 model Job {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
   jobGroup    JobGroup
   jobHeading  String
   description String
@@ -178,12 +178,78 @@ model Job {
   location    Location
   salary      Salary
   jobType     JobType
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdBy   User           @relation(fields: [createdById], references: [id])
+  createdById String         @db.ObjectId
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  applications Application[]
 
   @@index([createdById])
+}
+
+model Application {
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  email             String            @unique
+  contact           String            @unique
+  dateOfBirth       DateTime
+  yearOfGraduation  String
+  gender            Gender
+  experienceInYears ExperienceInYears
+  currentEmployer   String
+  currentCTC        CTC
+  expectedCTC       CTC
+  noticePeriod      NoticePeriod
+  currentLocation   String
+  preferredLocation Location
+  skillSet          String[]
+  pdfUrl            String
+  jobId             String            @db.ObjectId
+  job               Job               @relation(fields: [jobId], references: [id])
+  applicationStatus ApplicationStatus @default(Applied)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([experienceInYears, gender, currentLocation, preferredLocation])
+}
+
+enum Gender {
+  Male
+  Female
+  Not_Willing_to_Disclose
+}
+
+enum ApplicationStatus {
+  Applied
+  Viewed
+  Shortlisted
+  Rejected
+  Interviewing
+  Joined
+}
+
+enum ExperienceInYears {
+  LessThan1Year
+  Between1And2Years
+  Between2And3Years
+  Between3And5Years
+  MoreThan5Years
+}
+
+enum CTC {
+  LessThan5LPA
+  Between5And10LPA
+  Between10And20LPA
+  Between20And30LPA
+  MoreThan30LPA
+}
+
+enum NoticePeriod {
+  Immediate
+  FifteenDays
+  OneMonth
+  TwoMonths
+  ThreeMonths
 }
 
 enum JobGroup {
