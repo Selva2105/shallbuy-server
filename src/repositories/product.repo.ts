@@ -44,7 +44,7 @@ export class ProductRepository {
     const query: any = {};
 
     // Category filtering
-    if (category) {
+    if (category && category !== 'ALL') {
       query.category = category;
     }
 
@@ -134,7 +134,7 @@ export class ProductRepository {
     const quantity = parseInt(productData.quantity, 10);
 
     // Map over variants to ensure their fields are also correctly typed
-    const typedVariants = productData.variants.map(
+    const typedVariants = productData.variants?.map(
       (variant: ProductVariant) => ({
         type: variant.type,
         price: parseFloat(variant.price.toString()),
@@ -155,9 +155,7 @@ export class ProductRepository {
         discountedPrice,
         images: productPicture,
         quantity,
-        variants: {
-          create: typedVariants,
-        },
+        ...(typedVariants && { variants: { create: typedVariants } }),
       },
       include: {
         variants: true,

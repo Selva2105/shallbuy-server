@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import type { NextFunction, Request, Response } from 'express';
 
 import CustomError from '../utils/customError';
@@ -78,6 +79,93 @@ const validationErrorHandler = (err: any): CustomError => {
 };
 
 /**
+ * Handle Prisma errors and convert them into a CustomError.
+ *
+ * @param {Object} err - Prisma error.
+ * @returns {CustomError} - CustomError object with a specific error message.
+ */
+const prismaErrorHandler = (err: any): CustomError => {
+  let msg: string;
+  switch (err.code) {
+    case 'P2002':
+      msg = `Unique constraint failed on the field: ${err.meta.target}`;
+      break;
+    case 'P2025':
+      msg = `Record not found: ${err.meta.cause}`;
+      break;
+    case 'P2003':
+      msg = `Foreign key constraint failed on the field: ${err.meta.field_name}`;
+      break;
+    case 'P2004':
+      msg = `A constraint failed on the database: ${err.meta.database_error}`;
+      break;
+    case 'P2005':
+      msg = `The value provided for the field is invalid: ${err.meta.field_name}`;
+      break;
+    case 'P2006':
+      msg = `The provided value for the field is too long: ${err.meta.field_name}`;
+      break;
+    case 'P2007':
+      msg = `Data validation error: ${err.meta.database_error}`;
+      break;
+    case 'P2008':
+      msg = `Failed to parse the query: ${err.meta.query}`;
+      break;
+    case 'P2009':
+      msg = `Failed to validate the query: ${err.meta.query}`;
+      break;
+    case 'P2010':
+      msg = `Raw query failed: ${err.meta.database_error}`;
+      break;
+    case 'P2011':
+      msg = `Null constraint violation on the field: ${err.meta.field_name}`;
+      break;
+    case 'P2012':
+      msg = `Missing a required value: ${err.meta.field_name}`;
+      break;
+    case 'P2013':
+      msg = `Missing the required argument: ${err.meta.argument_name}`;
+      break;
+    case 'P2014':
+      msg = `The change you are trying to make would violate the required relation: ${err.meta.relation_name}`;
+      break;
+    case 'P2015':
+      msg = `A related record could not be found: ${err.meta.relation_name}`;
+      break;
+    case 'P2016':
+      msg = `Query interpretation error: ${err.meta.database_error}`;
+      break;
+    case 'P2017':
+      msg = `The records for the relation are not connected: ${err.meta.relation_name}`;
+      break;
+    case 'P2018':
+      msg = `The required connected records were not found: ${err.meta.relation_name}`;
+      break;
+    case 'P2019':
+      msg = `Input error: ${err.meta.database_error}`;
+      break;
+    case 'P2020':
+      msg = `Value out of range for the type: ${err.meta.field_name}`;
+      break;
+    case 'P2021':
+      msg = `The table does not exist in the current database: ${err.meta.table}`;
+      break;
+    case 'P2022':
+      msg = `The column does not exist in the current database: ${err.meta.column}`;
+      break;
+    case 'P2023':
+      msg = `Inconsistent column data: ${err.meta.database_error}`;
+      break;
+    case 'P2024':
+      msg = `Timed out fetching a new connection from the connection pool: ${err.meta.database_error}`;
+      break;
+    default:
+      msg = 'An unknown error occurred with the database.';
+  }
+  return new CustomError(msg, 400);
+};
+
+/**
  * Express error handler middleware.
  *
  * @param {Object} error - Error object.
@@ -107,6 +195,17 @@ const globalErrorHandler = (
     // If it's a validation error, handle it here
     if (error.message === 'Validation failed')
       error = validationErrorHandler(error);
+
+    // If it's a Prisma error, handle it here
+    if (error instanceof Prisma.PrismaClientKnownRequestError)
+      error = prismaErrorHandler(error);
+
+    // Handle other types of errors here
+    if (error.name === 'UnauthorizedError') {
+      error = new CustomError('Unauthorized access', 401);
+    } else if (error.name === 'ForbiddenError') {
+      error = new CustomError('Forbidden access', 403);
+    }
 
     productionError(res, error);
   }
