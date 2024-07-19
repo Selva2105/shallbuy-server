@@ -26,7 +26,6 @@ const upload = multer({ storage }).single('file');
 
 // GET Routes
 router.get('/users', ProtectMiddleware.protect, userController.getAllUsers);
-router.get('/verifyEmail/:emailVerificationToken', userController.verifyEmail);
 router.get('/user/:id', ProtectMiddleware.protect, userController.getUserById);
 
 // POST Routes
@@ -51,6 +50,7 @@ router.patch(
   ProtectMiddleware.protect,
   userController.updateUserSettings,
 );
+router.patch('/verifyEmail/:id', userController.verifyEmail);
 router.patch(
   '/user/:id/profile',
   ProtectMiddleware.protect,

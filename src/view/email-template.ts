@@ -1,4 +1,9 @@
-const emailTemplate = (url: string, name: string, email: string) => {
+const emailTemplate = (
+  url: string,
+  name: string,
+  email: string,
+  otp: string,
+) => {
   return `
   <!DOCTYPE html>
   <html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -121,7 +126,7 @@ const emailTemplate = (url: string, name: string, email: string) => {
               thrilled to have you on board and look forward to providing you with an exceptional online shopping
               experience.</p>
             <p style="margin-top: 24px">This is your verification code:</p>
-            <p class="verification-code" style="margin-top: 24px">3066</p>
+            <p class="verification-code" style="margin-top: 24px">${otp}</p>
             <p style="margin-top: 24px">This code will only be valid for the next 24 hours.</p>
             <a href="${url}" class="button" style="margin-top: 24px; text-decoration: none; color: #ffffff;">Verify email</a>
             <p style="margin-top: 24px">Thanks,<br>The team</p>

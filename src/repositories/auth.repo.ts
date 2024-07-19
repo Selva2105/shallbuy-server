@@ -1,7 +1,6 @@
 import type { Prisma, PrismaClient, Role, User } from '@prisma/client';
 import type { JsonValue } from '@prisma/client/runtime/library';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import type { FirebaseApp } from 'firebase/app';
 import type { FirebaseStorage } from 'firebase/storage';
 import {
@@ -11,6 +10,8 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage';
+
+import { OTPUtils } from '@/utils/authUtils';
 
 interface ExtendedUserCreateInput extends Prisma.UserCreateInput {
   confirmPassword?: string;
@@ -71,7 +72,7 @@ export class UserRepository {
         cleanUser.password = await bcrypt.hash(cleanUser.password, 12);
       }
       // Generate email verification token
-      cleanUser.emailVerificationToken = crypto.randomBytes(20).toString('hex');
+      cleanUser.emailVerificationOTP = OTPUtils.generateOTP();
       cleanUser.emailVerificationExpires = new Date(
         Date.now() + 24 * 60 * 60 * 1000,
       );
@@ -147,9 +148,9 @@ export class UserRepository {
    * @param token - The token to search for.
    * @returns A promise that resolves to the user object or null.
    */
-  async findByEmailVerificationToken(token: string): Promise<User | null> {
+  async findByemailVerificationOTP(token: string): Promise<User | null> {
     return this.prisma.user.findUnique({
-      where: { emailVerificationToken: token },
+      where: { emailVerificationOTP: token },
     });
   }
 
@@ -185,7 +186,7 @@ export class UserRepository {
         isEmailVerified: true,
         twoFactorEnabled: true,
         password: false,
-        emailVerificationToken: false,
+        emailVerificationOTP: false,
         emailVerificationExpires: false,
         backupCodes: false,
         passwordResetExpires: false,
@@ -229,7 +230,7 @@ export class UserRepository {
         isEmailVerified: true,
         twoFactorEnabled: true,
         password: false,
-        emailVerificationToken: false,
+        emailVerificationOTP: false,
         emailVerificationExpires: false,
         backupCodes: false,
         passwordResetExpires: false,
