@@ -1,80 +1,145 @@
-const emailTemplate = (url: string, name: string) => {
+const emailTemplate = (url: string, name: string, email: string) => {
   return `
   <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap" rel="stylesheet">
-<title>Verify Your Email</title>
-<style>
-    body {
+  <html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <meta name="x-apple-disable-message-reformatting">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="telephone=no" name="format-detection">
+    <title></title>
+    <style>
+      body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
         margin: 0;
         padding: 0;
-    }
-    .email-container {
-        background-color: #ffffff;
+      }
+  
+      .email-container {
         width: 100%;
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .logo-img {
-        width: 200px; /* Reduced size */
-        height: auto;
-        margin: 0 auto; /* Centers the image horizontally */
-        display: block; /* Ensures the image is on its own line */
-    }
-    .button {
-        color: #3498db;
-        border: none;
+        max-width: 576px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 32px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+  
+      .header {
+        display: flex;
+        justify-content: center;
+      }
+  
+      .header img {
+        width: 45%;
+        padding: 24px;
+      }
+  
+      .content {
+        font-size: 15px;
+        padding: 32px 24px 32px 24px;
+        text-align: start;
+      }
+  
+      .verification-code {
+        font-size: 36px;
+        font-weight: bold;
+        letter-spacing: 10px;
+        margin: 20px 0;
+        color: #7F56D9;
+      }
+  
+      .button {
+        background-color: #7F56D9;
+        color: #ffffff;
         padding: 10px 20px;
-        text-align: center;
         text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 10px 2px;
-        cursor: pointer;
         border-radius: 5px;
-    }
-    
-    .gray-text {
-        color: #C4C0C0;
-    }
-    
-    .poppins-medium {
-            font-family: "Poppins", sans-serif;
-            font-weight: 500;
-            font-style: normal;
-        }
+        display: inline-block;
+        margin: 20px 0;
+      }
+  
+      .footer {
+        font-size: 15px;
+        color: #888888;
+        text-align: start;
+        padding: 32px 24px 32px 24px;
+      }
+  
+      .footer a {
+        color: #7F56D9;
+        text-decoration: none;
+      }
 
-        .poppins-regular {
-            font-family: "Poppins", sans-serif;
-            font-weight: 400;
-            font-style: normal;
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #121212;
+          color: #ffffff;
         }
-</style>
-</head>
-<body>
-<div class="email-container poppins-regular">
-    <img src="https://firebasestorage.googleapis.com/v0/b/ikart-40b39.appspot.com/o/images%2Fstatic-images%2Flogo.png?alt=media&token=b532a225-c164-4f91-be65-871e9297af7d" alt="Company Logo" class="logo-img">
-    <h2>Welcome to Shallbuy!</h2>
-    <p class="poppins-medium">Hi ${name} our beloved Chief,</p>
-    <p>Welcome to Shallbuy, your one-stop destination for all your shopping needs! We are thrilled to have you on board and look forward to providing you with an exceptional online shopping experience.</p>
-    <p>To ensure the security of your account, we kindly ask you to verify your email address. Simply click on the following button to complete the verification process:</p>
-    <a href="${url}" class="button" target="_blank">Click to verify</a>
-    <p class="gray-text">By verifying your email, you'll gain access to exclusive offers, personalized recommendations, and the latest updates on our newest arrivals. We want to make sure you don't miss out on any exciting news or promotions!</p>
-    <p class="gray-text">If you have any questions or need assistance, our customer support team is here to help. Feel free to reach out to <a href="mailto:support@shallbuy.com">support@shallbuy.com</a> for prompt assistance.</p>
-    <p class="gray-text">Thank you for choosing Shallbuy. We can't wait to embark on this shopping journey with you!</p>
-    <p>Best Regards,<br>The Shallbuy Team</p>
-</div>
-</body>
-</html>
+  
+        .email-container {
+          background-color: #1e1e1e;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+  
+        .verification-code {
+          color: #bb86fc;
+        }
+  
+        .button {
+          background-color: #bb86fc;
+        }
+  
+        .footer {
+          color: #bbbbbb;
+        }
+  
+        .footer a {
+          color: #bb86fc;
+        }
+      }
+    </style>
+  </head>
+  
+  <body class="body">
+    <div dir="ltr" class="es-wrapper-color">
+      <table cellpadding="0" cellspacing="0" class="email-container">
+        <tr>
+          <td class="header">
+            <img alt="Untitled UI"
+              src="https://firebasestorage.googleapis.com/v0/b/ikart-40b39.appspot.com/o/images%2Fstatic-images%2Fvertical-logo.png?alt=media&token=c25c4b6b-e3db-4aa5-adf6-724b5e72f0fe">
+          </td>
+        </tr>
+        <tr>
+          <td esd-text="true" class="content esd-text" style="padding: 0 24px">
+            <h3>Welcome to Shallbuy!</h3>
+            <p style="margin-top: 24px">Hi ${name},</p>
+            <p style="margin-top: 24px">Welcome to Shallbuy, your one-stop destination for all your shopping needs! We are
+              thrilled to have you on board and look forward to providing you with an exceptional online shopping
+              experience.</p>
+            <p style="margin-top: 24px">This is your verification code:</p>
+            <p class="verification-code" style="margin-top: 24px">3066</p>
+            <p style="margin-top: 24px">This code will only be valid for the next 24 hours.</p>
+            <a href="${url}" class="button" style="margin-top: 24px; text-decoration: none; color: #ffffff;">Verify email</a>
+            <p style="margin-top: 24px">Thanks,<br>The team</p>
+          </td>
+        </tr>
+        <tr>
+          <td esd-text="true" class="footer esd-text" style="padding: 24px;">
+            <p>This email was sent to <a href="mailto:${email}">${email}</a>. If you'd rather
+              not receive this kind of email, you can <a href="#">unsubscribe</a> or <a href="#">manage your email
+                preferences</a>.</p>
+                <p style="font-size: 12px; color: #888888; margin-top: 14px;">© 2024 Shallbuy, Coimbatore, Tamil Nadu, India</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+  
+  </html>
 `;
 };
 

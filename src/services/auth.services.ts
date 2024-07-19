@@ -88,6 +88,7 @@ export class UserService {
         html: emailTemplate(
           `https://shallbuy-server.onrender.com/api/v1/auth/verifyEmail/${user.emailVerificationToken}`,
           user.username,
+          user.email,
         ),
       };
       await this.mailer.sendMail(mailOptions);
