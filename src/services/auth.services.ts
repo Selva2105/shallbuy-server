@@ -86,9 +86,10 @@ export class UserService {
         to: user.email,
         subject: 'Welcome to Sky kart! Verify your email',
         html: emailTemplate(
-          `https://shallbuy-server.onrender.com/api/v1/auth/verifyEmail/${user.emailVerificationToken}`,
+          `https://shallbuy-server.onrender.com/api/v1/auth/verifyEmail/${user.id}`,
           user.username,
           user.email,
+          user.emailVerificationOTP || '',
         ),
       };
       await this.mailer.sendMail(mailOptions);
@@ -126,20 +127,30 @@ export class UserService {
    * @param token - Token for email verification.
    * @returns The verified user or null if verification fails.
    */
-  public async verifyUserEmail(token: string): Promise<User | null> {
-    const user = await this.userRepository.findByEmailVerificationToken(token);
+  public async verifyUserEmail(
+    id: string,
+    token: string,
+  ): Promise<User | null> {
+    const user = await this.userRepository.findById(id);
+
+    if (!user) {
+      throw new CustomError('User not found', 404);
+    }
 
     if (
-      !user ||
       !user.emailVerificationExpires ||
       user.emailVerificationExpires < new Date()
     ) {
-      return null;
+      throw new CustomError('Verification token expired', 400);
+    }
+
+    if (user.emailVerificationOTP !== token) {
+      throw new CustomError('Invalid verification token', 400);
     }
 
     await this.userRepository.updateUser(user.id, {
       isEmailVerified: true,
-      emailVerificationToken: null,
+      emailVerificationOTP: null,
       emailVerificationExpires: null,
       auditLogs: {
         push: {
@@ -342,7 +353,7 @@ export class UserService {
       'password',
       'role',
       'backupCodes',
-      'emailVerificationToken',
+      'emailVerificationOTP',
       'emailVerificationExpires',
       'passwordResetToken',
       'passwordResetExpires',

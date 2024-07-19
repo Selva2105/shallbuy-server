@@ -25,7 +25,7 @@ model User {
   twoFactorEnabled         Boolean   @default(false)
   twoFactorSecret          String?
   backupCodes              Json[]
-  emailVerificationToken   String?   @unique
+  emailVerificationOTP     String?   @unique
   emailVerificationExpires DateTime?
   passwordResetToken       String?
   passwordResetExpires     DateTime?
@@ -78,6 +78,7 @@ model Product {
   discountedPrice    Float            @default(0)
   category           CategoryType
   quantity           Int
+  brandName          String
   images             String
   comments           Comment[]
   createdAt          DateTime         @default(now())

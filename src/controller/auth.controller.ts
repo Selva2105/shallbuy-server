@@ -3,7 +3,6 @@ import type { NextFunction, Request, Response } from 'express';
 import type { UserService } from '@/services/auth.services';
 import asyncHandler from '@/utils/asyncErrorHandler';
 import CustomError from '@/utils/customError';
-import result from '@/view/email-result';
 
 /**
  * UserController class handles all HTTP requests related to user operations.
@@ -72,22 +71,21 @@ export class UserController {
    * @param next - The next middleware function in the stack.
    */
   public verifyEmail = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      const { emailVerificationToken } = req.params;
+    async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
+      const { id } = req.params;
+      const { emailVerificationOTP } = req.body;
+
       const user = await this.userService.verifyUserEmail(
-        emailVerificationToken || '',
+        id || '',
+        emailVerificationOTP || '',
       );
 
-      if (!user) {
-        const error = new CustomError(
-          'Invalid or expired verification token',
-          400,
-        );
-        return next(error);
+      if (user) {
+        res.status(200).json({
+          status: 'success',
+          message: 'Email verified successfully',
+        });
       }
-
-      res.send(result());
-      return undefined;
     },
   );
 
