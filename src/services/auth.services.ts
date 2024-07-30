@@ -11,6 +11,7 @@ import {
 import jwt from 'jsonwebtoken';
 
 import type { SafeUser, UserRepository } from '@/repositories/auth.repo';
+import { OTPUtils } from '@/utils/authUtils';
 import CustomError from '@/utils/customError';
 import DateTimeUtils from '@/utils/dateUtils';
 import type Mailer from '@/utils/mailer';
@@ -84,9 +85,9 @@ export class UserService {
       const mailOptions = {
         from: process.env.ADMIN_MAILID || 'default-email@example.com',
         to: user.email,
-        subject: 'Welcome to Sky kart! Verify your email',
+        subject: 'Welcome to Shallbuy',
         html: emailTemplate(
-          `https://shallbuy-server.onrender.com/api/v1/auth/verifyEmail/${user.id}`,
+          `${process.env.FRONTEND_URL}/verify-user?id=${user.id}`,
           user.username,
           user.email,
           user.emailVerificationOTP || '',
@@ -162,6 +163,44 @@ export class UserService {
     });
 
     return user;
+  }
+
+  /**
+   * Resends the OTP for email verification.
+   * @param userId - The ID of the user.
+   * @returns The updated user or null if the user is not found.
+   */
+  async resendOTP(userId: string): Promise<User | null> {
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new CustomError('User not found', 404);
+    }
+
+    const newOTP = OTPUtils.generateOTP();
+    const newExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const updatedUser = await this.userRepository.updateUser(userId, {
+      emailVerificationOTP: newOTP,
+      emailVerificationExpires: newExpiration,
+    });
+
+    if (updatedUser) {
+      const mailOptions = {
+        from: process.env.ADMIN_MAILID || 'default-email@example.com',
+        to: updatedUser.email,
+        subject: 'New OTP for Email Verification',
+        html: emailTemplate(
+          `${process.env.FRONTEND_URL}/verify-user?id=${updatedUser.id}`,
+          updatedUser.username,
+          updatedUser.email,
+          newOTP,
+        ),
+      };
+      await this.mailer.sendMail(mailOptions);
+    }
+
+    return updatedUser;
   }
 
   /**

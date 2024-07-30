@@ -90,6 +90,29 @@ export class UserController {
   );
 
   /**
+   * Resends the OTP for email verification.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
+  public resendOTP = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { id } = req.params;
+      const user = await this.userService.resendOTP(id || '');
+
+      if (!user) {
+        next(new CustomError('User not found', 404));
+        return;
+      }
+
+      res.status(200).json({
+        status: 'success',
+        message: 'OTP resent successfully',
+      });
+    },
+  );
+
+  /**
    * Retrieves all registered users.
    * @param req - The HTTP request object.
    * @param res - The HTTP response object.

@@ -38,6 +38,7 @@ router.post(
   upload,
   userController.uploadProfile,
 );
+router.post('/resendOTP/:id', userController.resendOTP);
 
 // PATCH Routes
 router.patch(

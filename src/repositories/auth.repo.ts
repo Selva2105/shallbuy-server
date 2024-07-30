@@ -155,6 +155,30 @@ export class UserRepository {
   }
 
   /**
+   * Updates the OTP and its expiration for a user.
+   * @param userId - The ID of the user.
+   * @param otp - The new OTP.
+   * @param expiresAt - The new expiration date.
+   * @returns A promise that resolves to the updated user.
+   */
+  async updateOTP(userId: string, otp: string, expiresAt: Date): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        emailVerificationOTP: otp,
+        emailVerificationExpires: expiresAt,
+        auditLogs: {
+          push: {
+            action: 'OTP Resend',
+            timestamp: new Date(),
+            details: 'New OTP generated and sent for email verification',
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Updates a user's data.
    * @param id - The user's ID.
    * @param updates - An object containing the fields to update.
