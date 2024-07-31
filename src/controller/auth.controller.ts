@@ -90,6 +90,29 @@ export class UserController {
   );
 
   /**
+   * Resends the OTP for email verification.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
+  public resendOTP = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { id } = req.params;
+      const user = await this.userService.resendOTP(id || '');
+
+      if (!user) {
+        next(new CustomError('User not found', 404));
+        return;
+      }
+
+      res.status(200).json({
+        status: 'success',
+        message: 'OTP resent successfully',
+      });
+    },
+  );
+
+  /**
    * Retrieves all registered users.
    * @param req - The HTTP request object.
    * @param res - The HTTP response object.
@@ -191,6 +214,64 @@ export class UserController {
       res.status(200).json({
         status: 'success',
         message: 'Password changed successfully',
+      });
+    },
+  );
+
+  /**
+   * Initiates the forgot password process for a user.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
+  public forgotPassword = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { email } = req.body;
+      const resetToken = await this.userService.forgotPassword(email);
+
+      if (!resetToken) {
+        next(
+          new CustomError(
+            'There was an error sending the email. Try again later!',
+            500,
+          ),
+        );
+        return;
+      }
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Email sent successfully!',
+      });
+    },
+  );
+
+  /**
+   * Resets the password for a user using a valid token.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
+  public resetPassword = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { token } = req.params;
+      const { password, confirmPassword } = req.body;
+
+      if (password !== confirmPassword) {
+        next(new CustomError('Passwords do not match', 400));
+        return;
+      }
+
+      const user = await this.userService.resetPassword(token || '', password);
+
+      if (!user) {
+        next(new CustomError('Token is invalid or has expired', 400));
+        return;
+      }
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Password reset successful',
       });
     },
   );
