@@ -1,3 +1,5 @@
+import type { Address, Order } from '@prisma/client';
+
 import type { OrderProductRepository } from '@/repositories/orderProduct.repo';
 import CustomError from '@/utils/customError';
 
@@ -8,40 +10,25 @@ export class OrderService {
     this.orderProductRepository = orderProductRepository;
   }
 
-  async checkRole(userId: string): Promise<boolean> {
-    const role = await this.orderProductRepository.checkRole(userId);
-    if (!role) {
-      throw new CustomError('Role is not user', 404);
+  /**
+   * Creates a new order
+   * @param orderData - The order data including user, address, and products
+   * @returns The created order
+   * @throws CustomError if order creation fails
+   */
+  async createOrder(
+    orderData: Omit<Order, 'id' | 'createdAt' | 'updatedAt'> & {
+      products: Array<{ productId: string; quantity: number }>;
+    },
+  ): Promise<Order> {
+    try {
+      return await this.orderProductRepository.createOrder(orderData);
+    } catch (error) {
+      throw new CustomError('Failed to create order', 500);
     }
-    return role;
   }
 
-  public async checkUser(userId: string): Promise<boolean> {
-    const user = await this.orderProductRepository.findUserById(userId);
-    if (!user) {
-      throw new CustomError('User not found', 404);
-    }
-    return this.checkRole(userId);
+  async createAddress(addressData: Address) {
+    return this.orderProductRepository.createAddress(addressData);
   }
-
-  public async checkAllProducts(orderProduct: string[]): Promise<any[]> {
-    const productsPresent = [];
-    const productsNotPresent = [];
-    for (const productCode of orderProduct) {
-      const product = this.orderProductRepository.checkProduct(productCode);
-      if (product == null) {
-        productsNotPresent.push(productCode);
-        throw new CustomError('This product not found', 404);
-      }
-      productsPresent.push(product);
-    }
-    return productsPresent;
-  }
-
-  // public async createOrder(orderData :OrderData ){
-  //   return orderData;
-  // }
-  // public async reCheckProducts(productsNotPresent : string[]): Promise<any[]> {
-
-  // }
 }
