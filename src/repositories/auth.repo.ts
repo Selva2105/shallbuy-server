@@ -376,6 +376,59 @@ export class UserRepository {
   }
 
   /**
+   * Creates a password reset token for a user.
+   * @param userId - The ID of the user.
+   * @param token - The reset token.
+   * @param expires - The expiration date of the token.
+   * @returns A promise that resolves to the updated user.
+   */
+  async createPasswordResetToken(
+    userId: string,
+    token: string,
+    expires: Date,
+  ): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordResetToken: token,
+        passwordResetExpires: expires,
+      },
+    });
+  }
+
+  /**
+   * Finds a user by their password reset token.
+   * @param token - The token to search for.
+   * @returns A promise that resolves to the user object or null.
+   */
+  async findByPasswordResetToken(token: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: { gt: new Date() },
+      },
+    });
+  }
+
+  /**
+   * Resets the password for a user and clears the reset token.
+   * @param userId - The ID of the user.
+   * @param newPassword - The new password to set.
+   * @returns A promise that resolves to the updated user.
+   */
+  async resetUserPassword(userId: string, newPassword: string): Promise<User> {
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+  }
+
+  /**
    * Updates user information and addresses.
    * @param userId - The ID of the user to update.
    * @param updates - Object containing fields to update.

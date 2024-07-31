@@ -1,5 +1,6 @@
 import type { Prisma, User } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { initializeApp } from 'firebase/app';
 import {
@@ -16,6 +17,7 @@ import CustomError from '@/utils/customError';
 import DateTimeUtils from '@/utils/dateUtils';
 import type Mailer from '@/utils/mailer';
 import type TokenService from '@/utils/SignToken';
+import forgetPassword from '@/view/email-forget-password';
 import emailTemplate from '@/view/email-template';
 
 dotenv.config();
@@ -410,5 +412,77 @@ export class UserService {
       updates,
       addresses,
     );
+  }
+
+  /**
+   * Initiates the forgot password process for a user.
+   * @param email - The email of the user requesting a password reset.
+   * @returns A promise that resolves to the reset token or null if the process fails.
+   */
+  async forgotPassword(email: string): Promise<string | null> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      throw new CustomError('There is no user with this email address.', 404);
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const passwordResetToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    const passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await this.userRepository.createPasswordResetToken(
+      user.id,
+      passwordResetToken,
+      passwordResetExpires,
+    );
+
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.ADMIN_MAILID || 'default-email@example.com',
+      to: user.email,
+      subject: 'Your password reset token (valid for 15 min)',
+      html: forgetPassword(user.username, user.email, resetURL),
+    };
+
+    try {
+      await this.mailer.sendMail(mailOptions);
+      return resetToken;
+    } catch (error) {
+      await this.userRepository.updateUser(user.id, {
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      });
+      throw new CustomError(
+        'There was an error sending the email. Try again later!',
+        500,
+      );
+    }
+  }
+
+  /**
+   * Resets the password for a user using a valid token.
+   * @param token - The reset token.
+   * @param newPassword - The new password to set.
+   * @returns A promise that resolves to the updated user or null if the reset fails.
+   */
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<User | null> {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user =
+      await this.userRepository.findByPasswordResetToken(hashedToken);
+
+    if (!user) {
+      throw new CustomError('Token is invalid or has expired', 400);
+    }
+
+    return this.userRepository.resetUserPassword(user.id, newPassword);
   }
 }

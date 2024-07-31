@@ -39,6 +39,8 @@ router.post(
   userController.uploadProfile,
 );
 router.post('/resendOTP/:id', userController.resendOTP);
+router.post('/forgotPassword', userController.forgotPassword);
+router.post('/resetPassword/:token', userController.resetPassword);
 
 // PATCH Routes
 router.patch(

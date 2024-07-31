@@ -219,6 +219,64 @@ export class UserController {
   );
 
   /**
+   * Initiates the forgot password process for a user.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
+  public forgotPassword = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { email } = req.body;
+      const resetToken = await this.userService.forgotPassword(email);
+
+      if (!resetToken) {
+        next(
+          new CustomError(
+            'There was an error sending the email. Try again later!',
+            500,
+          ),
+        );
+        return;
+      }
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Token sent to email!',
+      });
+    },
+  );
+
+  /**
+   * Resets the password for a user using a valid token.
+   * @param req - The HTTP request object.
+   * @param res - The HTTP response object.
+   * @param next - The next middleware function in the stack.
+   */
+  public resetPassword = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { token } = req.params;
+      const { password, confirmPassword } = req.body;
+
+      if (password !== confirmPassword) {
+        next(new CustomError('Passwords do not match', 400));
+        return;
+      }
+
+      const user = await this.userService.resetPassword(token || '', password);
+
+      if (!user) {
+        next(new CustomError('Token is invalid or has expired', 400));
+        return;
+      }
+
+      res.status(200).json({
+        status: 'success',
+        message: 'Password reset successful',
+      });
+    },
+  );
+
+  /**
    * Updates user settings related to two-factor authentication.
    * @param req - The HTTP request object.
    * @param res - The HTTP response object.
