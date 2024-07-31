@@ -440,12 +440,12 @@ export class UserService {
       passwordResetExpires,
     );
 
-    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.FRONTEND_URL}/change-password?token=${resetToken}`;
 
     const mailOptions = {
       from: process.env.ADMIN_MAILID || 'default-email@example.com',
       to: user.email,
-      subject: 'Your password reset token (valid for 15 min)',
+      subject: 'Reset your password in Shallbuy',
       html: forgetPassword(user.username, user.email, resetURL),
     };
 

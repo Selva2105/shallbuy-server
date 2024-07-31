@@ -241,7 +241,7 @@ export class UserController {
 
       res.status(200).json({
         status: 'success',
-        message: 'Token sent to email!',
+        message: 'Email sent successfully!',
       });
     },
   );
