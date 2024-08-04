@@ -17,7 +17,9 @@ export const createOrderValidator = [
       'CASH_ON_DELIVERY',
     ])
     .withMessage('Invalid payment method'),
-  body('products').isArray().notEmpty().withMessage('Products are required'),
+  body('products')
+    .isArray({ min: 1 })
+    .withMessage('At least one product is required'),
   body('products.*.productId')
     .isString()
     .notEmpty()
@@ -26,8 +28,8 @@ export const createOrderValidator = [
     .isInt({ min: 1 })
     .withMessage('Quantity must be at least 1'),
   body('products.*.price')
-    .isFloat({ min: 0 })
-    .withMessage('Price must be a positive number'),
+    .isFloat({ min: 0.01 })
+    .withMessage('Price must be greater than 0'),
   body('products.*.sellerId')
     .isString()
     .notEmpty()
