@@ -15,24 +15,45 @@ export class OrderProductsController {
       const { userId, deliveryAddress, modeOfPayment, products, total } =
         req.body;
 
-      const newAddress = await this.orderService.createAddress({
-        userId,
-        ...deliveryAddress,
-      });
+      const checkUser = await this.orderService.checkUser(userId);
+      if (!checkUser) {
+        return res.status(404).json({
+          status: 'failed',
+          message: 'User not found',
+        });
+      }
+      const { present, notPresent } =
+        await this.orderService.checkProducts(products);
+      if (notPresent.length > 0) {
+        return res.status(400).json({
+          status: 'failed',
+          message: 'Some products are not available',
+          unavailableProducts: notPresent,
+        });
+      }
+      if (present.length === products.length) {
+        const newAddress = await this.orderService.createAddress({
+          userId,
+          ...deliveryAddress,
+        });
 
-      const newOrder = await this.orderService.createOrder({
-        userId,
-        deliveryAddressId: newAddress.id,
-        modeOfPayment,
-        products,
-        total,
-        status: 'PENDING',
-      });
-
-      res.status(201).json({
-        status: 'success',
-        message: 'Order created successfully',
-        data: newOrder,
+        const newOrder = await this.orderService.createOrder({
+          userId,
+          deliveryAddressId: newAddress.id,
+          modeOfPayment,
+          products,
+          total,
+          status: 'PENDING',
+        });
+        return res.status(201).json({
+          status: 'success',
+          message: 'Order created successfully',
+          data: newOrder,
+        });
+      }
+      return res.status(400).json({
+        status: 'failed',
+        message: 'Invalid product list',
       });
     },
   );

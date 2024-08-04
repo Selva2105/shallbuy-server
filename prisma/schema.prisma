@@ -51,7 +51,7 @@ model Address {
   user      User    @relation(fields: [userId], references: [id])
   userId    String  @db.ObjectId
   district  String?
-  orders Order[]
+  orders    Order[]
 
   @@index([userId])
 }
@@ -118,15 +118,27 @@ model CartProduct {
 }
 
 model OrderProduct {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String  @db.ObjectId
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String  @db.ObjectId
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  orderId    String       @db.ObjectId
+  order      Order        @relation(fields: [orderId], references: [id])
+  productId  String       @db.ObjectId
+  product    Product      @relation(fields: [productId], references: [id])
+  tracking   TrackingItem @relation(fields: [trackingId], references: [id])
+  trackingId String       @db.ObjectId
+  quantity   Int
 
   @@index([orderId])
   @@index([productId])
+  @@index([trackingId])
+}
+
+model TrackingItem {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  status       String
+  location     String
+  time         DateTime
+  OrderProduct OrderProduct[]
+
 }
 
 model Cart {
@@ -141,17 +153,17 @@ model Cart {
 }
 
 model Order {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  user      User           @relation(fields: [userId], references: [id])
-  userId    String         @db.ObjectId
-  deliveryAddress Address  @relation(fields: [deliveryAddressId],references: [id])
-  deliveryAddressId String @db.ObjectId
-  modeOfPayment String     
-  products  OrderProduct[]
-  total     Float
-  status    OrderStatus
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  user              User           @relation(fields: [userId], references: [id])
+  userId            String         @db.ObjectId
+  deliveryAddress   Address        @relation(fields: [deliveryAddressId], references: [id])
+  deliveryAddressId String         @db.ObjectId
+  modeOfPayment     String
+  products          OrderProduct[]
+  total             Float
+  status            OrderStatus
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -177,18 +189,18 @@ model ContactForm {
 }
 
 model Job {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  jobGroup    JobGroup
-  jobHeading  String
-  description String
-  jobPoints   String[]
-  location    Location
-  salary      Salary
-  jobType     JobType
-  createdBy   User           @relation(fields: [createdById], references: [id])
-  createdById String         @db.ObjectId
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  jobGroup     JobGroup
+  jobHeading   String
+  description  String
+  jobPoints    String[]
+  location     Location
+  salary       Salary
+  jobType      JobType
+  createdBy    User          @relation(fields: [createdById], references: [id])
+  createdById  String        @db.ObjectId
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   applications Application[]
 
   @@index([createdById])
@@ -290,6 +302,7 @@ enum JobType {
 
 enum OrderStatus {
   PENDING
+  PROCESSING
   SHIPPED
   DELIVERED
   CANCELLED

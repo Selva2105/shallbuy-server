@@ -1,4 +1,4 @@
-import type { Address, Order } from '@prisma/client';
+import type { Address, Order, Product } from '@prisma/client';
 
 import type { OrderProductRepository } from '@/repositories/orderProduct.repo';
 import CustomError from '@/utils/customError';
@@ -8,6 +8,17 @@ export class OrderService {
 
   constructor(orderProductRepository: OrderProductRepository) {
     this.orderProductRepository = orderProductRepository;
+  }
+
+  async checkUser(id: string) {
+    const role = await this.orderProductRepository.findUser(id);
+    return role;
+  }
+
+  async checkProducts(
+    products: Product[],
+  ): Promise<{ present: string[]; notPresent: string[] }> {
+    return this.orderProductRepository.checkProducts(products);
   }
 
   /**

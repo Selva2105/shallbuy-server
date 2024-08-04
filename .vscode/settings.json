@@ -25,5 +25,8 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "Prisma.prisma"
   },
-  "prettier.ignorePath": ".gitignore" // Don't run prettier for files listed in .gitignore
+  "prettier.ignorePath": ".gitignore",
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  } // Don't run prettier for files listed in .gitignore
 }
