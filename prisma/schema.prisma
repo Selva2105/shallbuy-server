@@ -11,21 +11,21 @@ datasource db {
 }
 
 model User {
-  id                       String    @id @default(auto()) @map("_id") @db.ObjectId
-  username                 String    @unique
-  email                    String    @unique
+  id                       String         @id @default(auto()) @map("_id") @db.ObjectId
+  username                 String         @unique
+  email                    String         @unique
   password                 String
   contactno                String
   profilePicture           String?
   dateOfBirth              DateTime?
-  role                     Role      @default(USER)
+  role                     Role           @default(USER)
   preferences              Json
-  isActive                 Boolean   @default(true)
-  isEmailVerified          Boolean   @default(false)
-  twoFactorEnabled         Boolean   @default(false)
+  isActive                 Boolean        @default(true)
+  isEmailVerified          Boolean        @default(false)
+  twoFactorEnabled         Boolean        @default(false)
   twoFactorSecret          String?
   backupCodes              Json[]
-  emailVerificationOTP     String?   @unique
+  emailVerificationOTP     String?        @unique
   emailVerificationExpires DateTime?
   passwordResetToken       String?
   passwordResetExpires     DateTime?
@@ -33,10 +33,11 @@ model User {
   addresses                Address[]
   carts                    Cart[]
   orders                   Order[]
-  productsSold             Product[] @relation("UserProducts")
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
+  productsSold             Product[]      @relation("UserProducts")
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
   Job                      Job[]
+  OrderProduct             OrderProduct[]
 }
 
 model Address {
@@ -51,6 +52,7 @@ model Address {
   user      User    @relation(fields: [userId], references: [id])
   userId    String  @db.ObjectId
   district  String?
+  Order     Order[]
 
   @@index([userId])
 }
@@ -122,9 +124,14 @@ model OrderProduct {
   order     Order   @relation(fields: [orderId], references: [id])
   productId String  @db.ObjectId
   product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  sellerId  String  @db.ObjectId
+  seller    User    @relation(fields: [sellerId], references: [id])
 
   @@index([orderId])
   @@index([productId])
+  @@index([sellerId])
 }
 
 model Cart {
@@ -139,17 +146,47 @@ model Cart {
 }
 
 model Order {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  user      User           @relation(fields: [userId], references: [id])
-  userId    String         @db.ObjectId
-  products  OrderProduct[]
-  total     Float
-  status    OrderStatus
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  user              User           @relation(fields: [userId], references: [id])
+  userId            String         @db.ObjectId
+  products          OrderProduct[]
+  total             Float
+  status            OrderStatus
+  shippingAddress   Address        @relation(fields: [shippingAddressId], references: [id])
+  shippingAddressId String         @db.ObjectId
+  trackingInfo      TrackingInfo?
+  paymentMethod     PaymentMethod
+  paymentStatus     PaymentStatus
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
   @@index([userId])
   @@index([status])
+}
+
+model TrackingInfo {
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  order             Order           @relation(fields: [orderId], references: [id])
+  orderId           String          @unique @db.ObjectId
+  trackingId        String          @unique
+  carrier           String
+  status            TrackingStatus
+  estimatedDelivery DateTime?
+  trackingEvents    TrackingEvent[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model TrackingEvent {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  trackingInfoId String         @db.ObjectId
+  trackingInfo   TrackingInfo   @relation(fields: [trackingInfoId], references: [id])
+  status         TrackingStatus
+  location       String?
+  description    String?
+  timestamp      DateTime
+
+  @@index([trackingInfoId])
 }
 
 model RevokedToken {
@@ -171,18 +208,18 @@ model ContactForm {
 }
 
 model Job {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  jobGroup    JobGroup
-  jobHeading  String
-  description String
-  jobPoints   String[]
-  location    Location
-  salary      Salary
-  jobType     JobType
-  createdBy   User           @relation(fields: [createdById], references: [id])
-  createdById String         @db.ObjectId
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  jobGroup     JobGroup
+  jobHeading   String
+  description  String
+  jobPoints    String[]
+  location     Location
+  salary       Salary
+  jobType      JobType
+  createdBy    User          @relation(fields: [createdById], references: [id])
+  createdById  String        @db.ObjectId
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   applications Application[]
 
   @@index([createdById])
@@ -323,4 +360,31 @@ enum CategoryType {
   INDUSTRIAL
   OUTDOORS
   TRAVEL
+}
+
+enum TrackingStatus {
+  ORDER_PLACED
+  PROCESSING
+  SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED_ATTEMPT
+  RETURNED_TO_SENDER
+  EXCEPTION
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
