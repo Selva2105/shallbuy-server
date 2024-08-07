@@ -1,4 +1,4 @@
-import type { Order, PaymentMethod, PrismaClient, User } from '@prisma/client';
+import type { Order, PaymentMethod, PrismaClient, Role } from '@prisma/client';
 import { OrderStatus, PaymentStatus, TrackingStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
@@ -18,10 +18,12 @@ export class OrderRepository {
     this.prisma = prisma;
   }
 
-  async findUserById(userId: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+  async findUserById(userId: string): Promise<Role | null> {
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: { role: true },
     });
+    return user ? user.role : null;
   }
 
   async createOrder(
@@ -95,4 +97,61 @@ export class OrderRepository {
       throw new CustomError('Failed to create order', 500);
     }
   }
+
+  public getUserAdminRoleOrders = async (
+    userId: string,
+    filters: any,
+  ): Promise<any> => {
+    const {
+      sortBy,
+      sortOrder = 'asc',
+      // page = 1,
+      // pageSize = 10
+    } = filters;
+
+    // Sorting
+    const orderBy: Record<string, 'asc' | 'desc'> = {};
+    if (sortBy) {
+      orderBy[sortBy] = sortOrder;
+    }
+
+    // Pagination
+    // const skip = (page - 1) * pageSize;
+    // const take = parseInt(pageSize, 10);
+
+    const orders = await this.prisma.user.findUnique({
+      where: { id: userId },
+      // orderBy,
+      // skip,
+      // take,
+      include: {
+        OrderProduct: true,
+      },
+    });
+    return orders;
+  };
+
+  public getOrdersById = async (orderId: string): Promise<any> => {
+    const checkOrderId = await this.checkOrderId(orderId);
+    if (checkOrderId == null) {
+      throw new CustomError('Failed to fetch the orders', 500);
+    }
+    const orders = await this.prisma.order.findMany({
+      where: { id: orderId },
+      select: {
+        products: true,
+      },
+    });
+    return orders;
+  };
+
+  public checkOrderId = async (orderId: string): Promise<string | null> => {
+    const checkOrderId = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+      },
+    });
+    return checkOrderId ? checkOrderId.id : null;
+  };
 }

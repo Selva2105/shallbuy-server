@@ -37,4 +37,46 @@ export class OrderController {
       });
     },
   );
+
+  public getOrders = asyncErrorHandler(
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      if (!req.user || !req.user.id) {
+        return next(new CustomError('User not authenticated', 401));
+      }
+
+      const orders = await this.orderService.getOrders(req.user.id);
+      if (!orders) {
+        return res.status(404).json({
+          status: 'failed',
+          message: 'No orders placed',
+        });
+      }
+
+      return res.status(201).json({
+        status: 'success',
+        message: 'orders fetched sucessfully',
+        data: orders,
+      });
+    },
+  );
+
+  public getOrdersById = asyncErrorHandler(
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      if (!req.user || !req.user.id) {
+        return next(new CustomError('User not authenticated', 401));
+      }
+      const orders = await this.orderService.getOrders(req.params.id || '');
+      if (orders) {
+        return res.status(404).json({
+          status: 'failed',
+          message: 'Invalid orderId',
+        });
+      }
+      return res.status(201).json({
+        status: 'failed',
+        messsage: 'Orders fetched sucessfully',
+        data: orders,
+      });
+    },
+  );
 }
