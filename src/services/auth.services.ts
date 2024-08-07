@@ -1,5 +1,6 @@
 import type { Prisma, User } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { initializeApp } from 'firebase/app';
 import {
@@ -11,10 +12,12 @@ import {
 import jwt from 'jsonwebtoken';
 
 import type { SafeUser, UserRepository } from '@/repositories/auth.repo';
+import { OTPUtils } from '@/utils/authUtils';
 import CustomError from '@/utils/customError';
 import DateTimeUtils from '@/utils/dateUtils';
 import type Mailer from '@/utils/mailer';
 import type TokenService from '@/utils/SignToken';
+import forgetPassword from '@/view/email-forget-password';
 import emailTemplate from '@/view/email-template';
 
 dotenv.config();
@@ -84,9 +87,9 @@ export class UserService {
       const mailOptions = {
         from: process.env.ADMIN_MAILID || 'default-email@example.com',
         to: user.email,
-        subject: 'Welcome to Sky kart! Verify your email',
+        subject: 'Welcome to Shallbuy',
         html: emailTemplate(
-          `https://shallbuy-server.onrender.com/api/v1/auth/verifyEmail/${user.id}`,
+          `${process.env.FRONTEND_URL}/verify-user?id=${user.id}`,
           user.username,
           user.email,
           user.emailVerificationOTP || '',
@@ -162,6 +165,44 @@ export class UserService {
     });
 
     return user;
+  }
+
+  /**
+   * Resends the OTP for email verification.
+   * @param userId - The ID of the user.
+   * @returns The updated user or null if the user is not found.
+   */
+  async resendOTP(userId: string): Promise<User | null> {
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new CustomError('User not found', 404);
+    }
+
+    const newOTP = OTPUtils.generateOTP();
+    const newExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const updatedUser = await this.userRepository.updateUser(userId, {
+      emailVerificationOTP: newOTP,
+      emailVerificationExpires: newExpiration,
+    });
+
+    if (updatedUser) {
+      const mailOptions = {
+        from: process.env.ADMIN_MAILID || 'default-email@example.com',
+        to: updatedUser.email,
+        subject: 'New OTP for Email Verification',
+        html: emailTemplate(
+          `${process.env.FRONTEND_URL}/verify-user?id=${updatedUser.id}`,
+          updatedUser.username,
+          updatedUser.email,
+          newOTP,
+        ),
+      };
+      await this.mailer.sendMail(mailOptions);
+    }
+
+    return updatedUser;
   }
 
   /**
@@ -371,5 +412,77 @@ export class UserService {
       updates,
       addresses,
     );
+  }
+
+  /**
+   * Initiates the forgot password process for a user.
+   * @param email - The email of the user requesting a password reset.
+   * @returns A promise that resolves to the reset token or null if the process fails.
+   */
+  async forgotPassword(email: string): Promise<string | null> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      throw new CustomError('There is no user with this email address.', 404);
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const passwordResetToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    const passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await this.userRepository.createPasswordResetToken(
+      user.id,
+      passwordResetToken,
+      passwordResetExpires,
+    );
+
+    const resetURL = `${process.env.FRONTEND_URL}/change-password?token=${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.ADMIN_MAILID || 'default-email@example.com',
+      to: user.email,
+      subject: 'Reset your password in Shallbuy',
+      html: forgetPassword(user.username, user.email, resetURL),
+    };
+
+    try {
+      await this.mailer.sendMail(mailOptions);
+      return resetToken;
+    } catch (error) {
+      await this.userRepository.updateUser(user.id, {
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      });
+      throw new CustomError(
+        'There was an error sending the email. Try again later!',
+        500,
+      );
+    }
+  }
+
+  /**
+   * Resets the password for a user using a valid token.
+   * @param token - The reset token.
+   * @param newPassword - The new password to set.
+   * @returns A promise that resolves to the updated user or null if the reset fails.
+   */
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<User | null> {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user =
+      await this.userRepository.findByPasswordResetToken(hashedToken);
+
+    if (!user) {
+      throw new CustomError('Token is invalid or has expired', 400);
+    }
+
+    return this.userRepository.resetUserPassword(user.id, newPassword);
   }
 }
