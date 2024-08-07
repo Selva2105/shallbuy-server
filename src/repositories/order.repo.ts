@@ -132,10 +132,6 @@ export class OrderRepository {
   };
 
   public getOrdersById = async (orderId: string): Promise<any> => {
-    const checkOrderId = await this.checkOrderId(orderId);
-    if (checkOrderId == null) {
-      throw new CustomError('Failed to fetch the orders', 500);
-    }
     const orders = await this.prisma.order.findMany({
       where: { id: orderId },
       select: {

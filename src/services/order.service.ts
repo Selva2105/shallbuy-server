@@ -70,6 +70,10 @@ export class OrderService {
   }
 
   async getOrdersById(orderId: string) {
+    const checkOrderId = await this.checkOrderId(orderId);
+    if (checkOrderId == null) {
+      throw new CustomError('Failed to fetch the orders', 500);
+    }
     return this.orderRepository.getOrdersById(orderId);
   }
 }
