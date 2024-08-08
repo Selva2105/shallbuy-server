@@ -50,4 +50,19 @@ router.post(
   },
 );
 
+router.get(
+  '/orders',
+  ProtectMiddleware.protect,
+  (req: Request, res: Response, next: NextFunction) => {
+    return orderController.getOrders(req, res, next);
+  },
+);
+
+router.get(
+  '/orders/:id',
+  ProtectMiddleware.protect,
+  (req: Request, res: Response, next: NextFunction) => {
+    return orderController.getOrdersById(req, res, next);
+  },
+);
 export default router;

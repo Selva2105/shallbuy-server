@@ -103,4 +103,57 @@ export class OrderRepository {
       where: { id: addressId },
     });
   }
+
+  public getUserAdminRoleOrders = async (
+    userId: string,
+    filters: any,
+  ): Promise<any> => {
+    const {
+      sortBy,
+      sortOrder = 'asc',
+      // page = 1,
+      // pageSize = 10
+    } = filters;
+
+    // Sorting
+    const orderBy: Record<string, 'asc' | 'desc'> = {};
+    if (sortBy) {
+      orderBy[sortBy] = sortOrder;
+    }
+
+    // Pagination
+    // const skip = (page - 1) * pageSize;
+    // const take = parseInt(pageSize, 10);
+
+    const orders = await this.prisma.user.findUnique({
+      where: { id: userId },
+      // orderBy,
+      // skip,
+      // take,
+      include: {
+        OrderProduct: true,
+      },
+    });
+    return orders;
+  };
+
+  public getOrdersById = async (orderId: string): Promise<any> => {
+    const orders = await this.prisma.order.findMany({
+      where: { id: orderId },
+      select: {
+        products: true,
+      },
+    });
+    return orders;
+  };
+
+  public checkOrderId = async (orderId: string): Promise<string | null> => {
+    const checkOrderId = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+      },
+    });
+    return checkOrderId ? checkOrderId.id : null;
+  };
 }
