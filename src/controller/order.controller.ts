@@ -6,7 +6,7 @@ import asyncErrorHandler from '@/utils/asyncErrorHandler';
 import CustomError from '@/utils/customError';
 
 interface AuthenticatedRequest extends Request {
-  user?: { id: string };
+  user?: { id: string; role: string };
 }
 
 export class OrderController {
@@ -44,17 +44,24 @@ export class OrderController {
         return next(new CustomError('User not authenticated', 401));
       }
 
-      const orders = await this.orderService.getOrders(req.user.id);
-      if (!orders) {
-        return res.status(404).json({
+      let orders;
+      if (req.user.role === 'ADMIN') {
+        orders = await this.orderService.getAllOrders();
+      } else {
+        orders = await this.orderService.getOrdersByUserId(req.user.id);
+      }
+
+      if (!orders || orders.length === 0) {
+        return res.status(200).json({
           status: 'failed',
-          message: 'No orders placed',
+          message: 'No orders found',
         });
       }
 
-      return res.status(201).json({
+      return res.status(200).json({
         status: 'success',
-        message: 'orders fetched sucessfully',
+        message: 'Orders fetched successfully',
+        length: orders.length,
         data: orders,
       });
     },
@@ -65,17 +72,21 @@ export class OrderController {
       if (!req.user || !req.user.id) {
         return next(new CustomError('User not authenticated', 401));
       }
-      const orders = await this.orderService.getOrders(req.params.id || '');
-      if (orders) {
+
+      const orderId = req.params.id || '';
+      const order = await this.orderService.getOrdersById(orderId);
+
+      if (!order) {
         return res.status(404).json({
           status: 'failed',
-          message: 'Invalid orderId',
+          message: 'Order not found',
         });
       }
-      return res.status(201).json({
-        status: 'failed',
-        messsage: 'Orders fetched sucessfully',
-        data: orders,
+
+      return res.status(200).json({
+        status: 'success',
+        message: 'Order fetched successfully',
+        data: order,
       });
     },
   );

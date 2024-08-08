@@ -104,6 +104,23 @@ export class OrderRepository {
     });
   }
 
+  findAllOrders(): Promise<Order[]> {
+    return this.prisma.order.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  findOrdersByUserId(userId: string): Promise<Order[]> {
+    return this.prisma.order.findMany({
+      where: { userId },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   public getUserAdminRoleOrders = async (
     userId: string,
     filters: any,
@@ -138,13 +155,19 @@ export class OrderRepository {
   };
 
   public getOrdersById = async (orderId: string): Promise<any> => {
-    const orders = await this.prisma.order.findMany({
+    const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: {
+      include: {
         products: true,
+        shippingAddress: true,
+        trackingInfo: {
+          include: {
+            trackingEvents: true,
+          },
+        },
       },
     });
-    return orders;
+    return order;
   };
 
   public checkOrderId = async (orderId: string): Promise<string | null> => {

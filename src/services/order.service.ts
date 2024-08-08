@@ -131,15 +131,35 @@ export class OrderService {
       throw new CustomError('User not found', 404);
     }
 
-    const userRole = await this.orderRepository.findUserById(userId);
-    if (userRole == null) {
+    if (user.role == null) {
       throw new CustomError('User role not defined', 404);
     }
 
-    if (userRole.role === 'USER' || userRole.role === 'ADMIN') {
-      return this.getUserAdminRoleOrders(userId);
+    if (user.role === 'ADMIN') {
+      return this.getAllOrders();
+    }
+    if (user.role === 'USER') {
+      return this.getOrdersByUserId(userId);
     }
     return null;
+  }
+
+  async getAllOrders() {
+    try {
+      const orders = await this.orderRepository.findAllOrders();
+      return orders;
+    } catch (error) {
+      throw new CustomError('Failed to fetch all orders', 500);
+    }
+  }
+
+  async getOrdersByUserId(userId: string) {
+    try {
+      const orders = await this.orderRepository.findOrdersByUserId(userId);
+      return orders;
+    } catch (error) {
+      throw new CustomError('Failed to fetch orders for user', 500);
+    }
   }
 
   async getUserAdminRoleOrders(userId: string) {

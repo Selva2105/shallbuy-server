@@ -271,6 +271,7 @@ export class UserRepository {
             pincode: true,
           },
         },
+        OrderProduct: true,
         createdAt: true,
         updatedAt: true,
       },

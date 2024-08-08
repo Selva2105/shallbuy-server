@@ -51,7 +51,7 @@ router.post(
 );
 
 router.get(
-  '/orders',
+  '/',
   ProtectMiddleware.protect,
   (req: Request, res: Response, next: NextFunction) => {
     return orderController.getOrders(req, res, next);
@@ -59,7 +59,7 @@ router.get(
 );
 
 router.get(
-  '/orders/:id',
+  '/:id',
   ProtectMiddleware.protect,
   (req: Request, res: Response, next: NextFunction) => {
     return orderController.getOrdersById(req, res, next);
