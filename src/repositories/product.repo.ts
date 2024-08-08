@@ -100,6 +100,17 @@ export class ProductRepository {
     });
   };
 
+  async findProductById(
+    productId: string,
+  ): Promise<(Product & { variants: ProductVariant[] }) | null> {
+    return this.prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        variants: true,
+      },
+    });
+  }
+
   public findUnique = async (
     options: Prisma.ProductFindUniqueArgs,
   ): Promise<Product | null> => {
@@ -251,4 +262,28 @@ export class ProductRepository {
       where: { id: variantId },
     });
   };
+
+  async findProductsByIds(
+    productIds: string[],
+  ): Promise<(Product & { variants: ProductVariant[] })[]> {
+    return this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        discountPercentage: true,
+        discountedPrice: true,
+        category: true,
+        quantity: true,
+        brandName: true,
+        images: true,
+        createdAt: true,
+        updatedAt: true,
+        sellerId: true,
+        variants: true,
+      },
+    });
+  }
 }

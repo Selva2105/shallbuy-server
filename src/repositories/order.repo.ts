@@ -1,4 +1,10 @@
-import type { Order, PaymentMethod, PrismaClient, User } from '@prisma/client';
+import type {
+  Address,
+  Order,
+  PaymentMethod,
+  PrismaClient,
+  User,
+} from '@prisma/client';
 import { OrderStatus, PaymentStatus, TrackingStatus } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
@@ -81,11 +87,7 @@ export class OrderRepository {
         },
         include: {
           products: true,
-          trackingInfo: {
-            include: {
-              trackingEvents: true,
-            },
-          },
+          trackingInfo: true,
         },
       });
     } catch (error) {
@@ -94,5 +96,11 @@ export class OrderRepository {
       }
       throw new CustomError('Failed to create order', 500);
     }
+  }
+
+  async findSellerAddressById(addressId: string): Promise<Address | null> {
+    return this.prisma.address.findUnique({
+      where: { id: addressId },
+    });
   }
 }

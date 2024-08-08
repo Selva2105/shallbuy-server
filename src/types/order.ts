@@ -7,5 +7,6 @@ export interface CreateOrderData {
     quantity: number;
     price: number;
     sellerId: string;
+    image: string;
   }[];
 }
